@@ -28,7 +28,7 @@ CREATE TABLE member (
                         username varchar(50) NOT NULL UNIQUE,
                         password varchar(255) NOT NULL,
                         nickname varchar(50),
-                        role varchar(20) NOT NULL, --- 일단은
+                        role varchar(20) NOT NULL,
                         created_at timestamp DEFAULT CURRENT_TIMESTAMP,
                         PRIMARY KEY (id)
 );
