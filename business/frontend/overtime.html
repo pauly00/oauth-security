@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAYROLL — 야근 신청</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>PAYROLL</h1><p>급여 지급 관리 시스템</p></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">메뉴</div>
+      <a href="dashboard.html" class="nav-item"><span class="icon">🏠</span>대시보드</a>
+      <a href="overtime.html"  class="nav-item active"><span class="icon">🌙</span>야근 신청</a>
+      <a href="approval.html"  class="nav-item"><span class="icon">✅</span>승인 처리</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div class="user-info"><p id="userName">—</p><span id="userSub">—</span></div>
+      </div>
+      <button class="btn-logout" onclick="Auth.logout()">🚪 로그아웃</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h2>🌙 야근 신청</h2>
+      <p>야근 내역을 등록하면 상위 직책 순서대로 자동으로 승인 요청이 전송됩니다.</p>
+    </div>
+
+    <!-- 신청 폼 -->
+    <div class="card" style="max-width:600px;">
+      <div class="card-title"><span class="icon">📝</span> 새 야근 신청서</div>
+      <div id="formAlert" class="alert"></div>
+      <form id="overtimeForm" onsubmit="submitOvertime(event)">
+        <div class="form-group">
+          <label class="form-label">야근 날짜</label>
+          <input class="form-control" id="overtimeDate" type="date" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">야근 시간 (시간)</label>
+          <input class="form-control" id="hours" type="number" min="0.5" max="12" step="0.5" placeholder="예: 2.5" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">야근 사유</label>
+          <textarea class="form-control" id="reason" rows="3" placeholder="야근 사유를 상세히 입력하세요..." required></textarea>
+        </div>
+        <div style="background:#f8fafc;padding:12px 14px;border-radius:8px;margin-bottom:16px;font-size:13px;color:#64748b;">
+          💡 야근 수당: 시간당 <strong>10,000원 × 1.5배 = 15,000원</strong> 자동 계산
+        </div>
+        <button type="submit" class="btn btn-primary" id="submitBtn">신청서 제출</button>
+      </form>
+    </div>
+
+    <!-- 내 신청 목록 -->
+    <div class="card" style="margin-top:24px;">
+      <div class="card-title"><span class="icon">📋</span> 내 신청 내역</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>날짜</th><th>시간</th><th>사유</th><th>상태</th><th>승인 체인</th></tr>
+          </thead>
+          <tbody id="myOvertimeBody">
+            <tr class="empty-row"><td colspan="5">불러오는 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  const user = Auth.require();
+  if (user) {
+    renderUserChip(user);
+    // 오늘 날짜 기본값
+    document.getElementById('overtimeDate').value = new Date().toISOString().split('T')[0];
+    loadMyOvertimes();
+  }
+
+  async function submitOvertime(e) {
+    e.preventDefault();
+    const alertEl = document.getElementById('formAlert');
+    alertEl.classList.remove('show');
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '제출 중...';
+
+    try {
+      await API.createOvertime({
+        requesterId: user.id,
+        overtimeDate: document.getElementById('overtimeDate').value,
+        hours: parseFloat(document.getElementById('hours').value),
+        reason: document.getElementById('reason').value.trim(),
+      });
+      alertEl.className = 'alert alert-success show';
+      alertEl.textContent = '✅ 야근 신청이 완료되었습니다. 승인자에게 알림이 전송되었습니다.';
+      document.getElementById('overtimeForm').reset();
+      document.getElementById('overtimeDate').value = new Date().toISOString().split('T')[0];
+      await loadMyOvertimes();
+    } catch (err) {
+      alertEl.className = 'alert alert-error show';
+      alertEl.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '신청서 제출';
+    }
+  }
+
+  async function loadMyOvertimes() {
+    const tbody = document.getElementById('myOvertimeBody');
+    try {
+      const list = await API.getMyOvertimes(user.id);
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">아직 신청 내역이 없습니다.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(o => `
+        <tr>
+          <td>${o.overtimeDate}</td>
+          <td>${o.hours}h</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.reason}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td>${renderStepChain(o.approvalSteps)}</td>
+        </tr>`).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="5">오류: ${e.message}</td></tr>`;
+    }
+  }
+</script>
+</body>
+</html>
