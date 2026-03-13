@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
@@ -20,6 +21,7 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,7 +36,26 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
 
 @Configuration
-public class AuthorizationServerConfig {
+public class AuthorizationServerConfig extends JdbcRegisteredClientRepository {
+  
+    public AuthorizationServerConfig(JdbcOperations jdbcOperations) {
+        super(jdbcOperations);
+    }
+
+    @Override
+    public void save(RegisteredClient registeredClient) {
+        super.save(registeredClient);
+    }
+
+    @Override
+    public RegisteredClient findById(String id) {
+        return super.findById(id);
+    }
+
+    @Override
+    public RegisteredClient findByClientId(String clientId) {
+        return super.findByClientId(clientId);
+    }
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
