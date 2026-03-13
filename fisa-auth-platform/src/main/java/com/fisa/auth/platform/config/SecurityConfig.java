@@ -32,28 +32,27 @@ public class SecurityConfig {
                                 "/login",
                                 "/error",
                                 "/.well-known/**",
-                                "/oauth2/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+                                "/oauth2/**")
+                        .permitAll()
+                        .anyRequest().authenticated())
                 // 인증되지 않은 사용자 -> 인증 프론트 로그인 페이지
                 .exceptionHandling(e -> e
-                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("http://localhost:3000"))
-                )
+                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("http://localhost:3000")))
                 .formLogin(form -> form.disable())
                 .csrf(csrf -> csrf.disable()); // 일단 csrf disable
 
         return http.build();
     }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
-    }
-
+    // 패스워드 인코더 등록(BCrypt)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+  
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     @Bean

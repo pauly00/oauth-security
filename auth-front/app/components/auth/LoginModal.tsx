@@ -51,7 +51,11 @@ export default function LoginModal({
 
   function handleLoginSuccess() {
     onClose();
-    window.location.href = `/auth/consent?client_id=${clientId}&scope=${scope}&state=${state}`;
+    if (clientId && redirectUri && scope && state) {
+      window.location.href = `/auth/consent?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}`;
+    } else {
+      window.location.href = "/dashboard";
+    }
   }
 
   function toggleScope(id: string) {

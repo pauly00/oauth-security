@@ -18,9 +18,9 @@ export default async function Home({ searchParams }: HomePageProps) {
   // → 실제 Google/Kakao 동작과 동일
   if (client_id) {
     const cookieStore = await cookies();
-    const sessionId = cookieStore.get("gogle_session")?.value;
+    const sessionId = cookieStore.get("JSESSIONID")?.value;
 
-    if (sessionId) {
+    if (sessionId && redirect_uri && scope && state) {
       // 이미 로그인됨 → consent 페이지로 즉시 이동
       // (consent 페이지에서 기동의 여부를 Spring에 확인)
       redirect(
