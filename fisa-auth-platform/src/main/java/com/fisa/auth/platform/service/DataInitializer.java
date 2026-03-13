@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class DataInitializer implements CommandLineRunner {
 
     private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
+    // private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -20,7 +20,7 @@ public class DataInitializer implements CommandLineRunner {
         if (memberRepository.findByUsername("testuser").isEmpty()) {
             Member testMember = Member.builder()
                     .username("testuser")
-                    .password(passwordEncoder.encode("1234"))
+                    .password("{noop}1234")
                     .nickname("테스트유저")
                     .role("USER") // SecurityConfig의 roles()와 매칭
                     .build();
