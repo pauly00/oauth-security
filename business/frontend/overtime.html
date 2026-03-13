@@ -15,11 +15,8 @@
         <h1>PAYROLL</h1>
         <p>급여 지급 관리 시스템</p>
       </div>
-      <nav class="sidebar-nav">
-        <div class="nav-section">메뉴</div>
-        <a href="dashboard.html" class="nav-item"><span class="icon">🏠</span>대시보드</a>
-        <a href="overtime.html" class="nav-item active"><span class="icon">🌙</span>야근 신청</a>
-        <a href="approval.html" class="nav-item"><span class="icon">✅</span>승인 처리</a>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- 동적 로드 -->
       </nav>
       <div class="sidebar-footer">
         <div class="user-chip">
@@ -96,9 +93,30 @@
     const user = Auth.require();
     if (user) {
       renderUserChip(user);
+      buildNav(user);
       // 오늘 날짜 기본값
       document.getElementById('overtimeDate').value = new Date().toISOString().split('T')[0];
       loadMyOvertimes();
+    }
+
+    function buildNav(u) {
+      const isHR = u.role === 'HR' || u.role === 'ADMIN';
+      const items = [
+        { href: 'dashboard.html',       icon: '🏠', label: '대시보드' },
+        ...(u.role === 'EMPLOYEE'
+          ? [{ href: 'overtime.html', icon: '🌙', label: '야근 신청', active: true }]
+          : []),
+        ...(!isHR ? [{ href: 'approval.html', icon: '✅', label: '승인 처리' }] : []),
+        ...(isHR ? [
+          { href: 'salary.html',        icon: '💰', label: '급여 지급' },
+          { href: 'employee-management.html', icon: '👥', label: '사용자 관리' },
+          { href: 'rank-management.html', icon: '⚙️', label: '직책 관리' },
+        ] : []),
+      ];
+      const nav = document.getElementById('sidebarNav');
+      nav.innerHTML = `<div class="nav-section">메뉴</div>` +
+        items.map(i => `<a href="${i.href}" class="nav-item ${i.active?'active':''}">
+          <span class="icon">${i.icon}</span>${i.label}</a>`).join('');
     }
 
     async function submitOvertime(e) {

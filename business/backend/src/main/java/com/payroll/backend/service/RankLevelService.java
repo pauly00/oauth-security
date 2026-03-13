@@ -3,6 +3,7 @@ package com.payroll.backend.service;
 import com.payroll.backend.entity.Company;
 import com.payroll.backend.entity.RankLevel;
 import com.payroll.backend.repository.CompanyRepository;
+import com.payroll.backend.repository.EmployeeRepository;
 import com.payroll.backend.repository.RankLevelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ public class RankLevelService {
 
     private final RankLevelRepository rankLevelRepo;
     private final CompanyRepository companyRepo;
+    private final EmployeeRepository employeeRepo;
 
     @Transactional(readOnly = true)
     public List<RankLevel> getByCompany(Long companyId) {
@@ -39,6 +41,10 @@ public class RankLevelService {
 
     @Transactional
     public void delete(Long rankLevelId) {
+        if (employeeRepo.existsByRankLevelId(rankLevelId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "해당 직책에 배정된 사원이 있어 삭제할 수 없습니다.");
+        }
         rankLevelRepo.deleteById(rankLevelId);
     }
 }

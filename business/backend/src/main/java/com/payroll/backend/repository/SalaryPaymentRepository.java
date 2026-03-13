@@ -11,8 +11,9 @@ public interface SalaryPaymentRepository extends JpaRepository<SalaryPayment, Lo
 
     Optional<SalaryPayment> findByEmployeeIdAndYearMonth(Long employeeId, String yearMonth);
 
-    @Query("SELECT s FROM SalaryPayment s JOIN s.employee e WHERE e.company.id = :companyId AND s.yearMonth = :yearMonth ORDER BY e.rankLevel.level DESC")
     List<SalaryPayment> findByCompanyIdAndYearMonth(
             @Param("companyId") Long companyId,
             @Param("yearMonth") String yearMonth);
+
+    boolean existsByEmployeeId(Long employeeId);
 }

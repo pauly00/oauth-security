@@ -25,6 +25,8 @@ const API = {
   // Employees
   getEmployee: (id) => apiFetch(`/employees/${id}`),
   getEmployeesByCompany: (companyId) => apiFetch(`/employees/company/${companyId}`),
+  createEmployee: (data) => apiFetch('/employees', { method: 'POST', body: data }),
+  deleteEmployee: (id) => apiFetch(`/employees/${id}`, { method: 'DELETE' }),
 
   // Rank Levels
   getRankLevels: (companyId) => apiFetch(`/rank-levels/company/${companyId}`),

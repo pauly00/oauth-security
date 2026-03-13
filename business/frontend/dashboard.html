@@ -67,9 +67,10 @@
       ...(u.role === 'EMPLOYEE'
         ? [{ href: 'overtime.html', icon: '🌙', label: '야근 신청' }]
         : []),
-      { href: 'approval.html',        icon: '✅', label: '승인 처리' },
+      ...(!isHR ? [{ href: 'approval.html', icon: '✅', label: '승인 처리' }] : []),
       ...(isHR ? [
         { href: 'salary.html',        icon: '💰', label: '급여 지급' },
+        { href: 'employee-management.html', icon: '👥', label: '사용자 관리' },
         { href: 'rank-management.html', icon: '⚙️', label: '직책 관리' },
       ] : []),
     ];
@@ -90,28 +91,32 @@
       const approved = overtimes.filter(o => o.status === 'APPROVED');
 
       const isHR = user.role === 'HR' || user.role === 'ADMIN';
-      document.getElementById('statsGrid').innerHTML = `
-        <div class="stat-card">
-          <div class="stat-icon">📄</div>
-          <div class="stat-value">${overtimes.length}</div>
-          <div class="stat-label">전체 야근 신청</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⏳</div>
-          <div class="stat-value">${pending.length}</div>
-          <div class="stat-label">처리 중</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">✅</div>
-          <div class="stat-value">${approved.length}</div>
-          <div class="stat-label">승인 완료</div>
-        </div>
-        ${isHR ? `<div class="stat-card">
-          <div class="stat-icon">💼</div>
-          <div class="stat-value">${user.companyName}</div>
-          <div class="stat-label">소속 회사</div>
-        </div>` : ''}
-      `;
+      if (isHR) {
+        document.getElementById('statsGrid').innerHTML = `
+          <div class="stat-card">
+            <div class="stat-icon">📄</div>
+            <div class="stat-value">${overtimes.length}</div>
+            <div class="stat-label">전체 야근 신청</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value">${pending.length}</div>
+            <div class="stat-label">처리 중</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">${approved.length}</div>
+            <div class="stat-label">승인 완료</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💼</div>
+            <div class="stat-value">${user.companyName}</div>
+            <div class="stat-label">소속 회사</div>
+          </div>
+        `;
+      } else {
+        document.getElementById('statsGrid').style.display = 'none';
+      }
 
       const tbody = document.getElementById('recentBody');
       // HR이 아닌 직원은 최종 승인(APPROVED)된 내역 숨김

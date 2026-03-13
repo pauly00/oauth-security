@@ -18,7 +18,8 @@ public interface ApprovalStepRepository extends JpaRepository<ApprovalStep, Long
     List<ApprovalStep> findByApproverIdAndStatusOrderByOvertimeRequestCreatedAtDesc(
             Long approverId, ApprovalStep.Status status);
 
-    /** 철회/삭제 시 FK 제약 해제용: overtime 삭제 전 먼저 호출 */
     @Transactional
     void deleteByOvertimeRequestId(Long overtimeRequestId);
+
+    boolean existsByApproverId(Long approverId);
 }
