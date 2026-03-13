@@ -26,16 +26,20 @@ public class ClientApiController {
      * POST /api/clients/register
      */
     @PostMapping("/register")
-    public ResponseEntity<ClientRegistrationResponse> registerClient(
+    public ResponseEntity<?> registerClient(
             @Valid
             @RequestBody
             ClientRegistrationRequest request) {
+        try {
+            // 서비스 호출하여 등록 처리
+            ClientRegistrationResponse response = clientService.registerNewClient(request);
 
-        // 서비스 호출하여 등록 처리
-        ClientRegistrationResponse response = clientService.registerNewClient(request);
-
-        // 성공 응답 반환 (반환 코드: 201 Created)
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            // 성공 응답 반환 (반환 코드: 201 Created)
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            // 중복된 경우 400 Bad Request와 에러 메시지 반환
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // 목록 조회
