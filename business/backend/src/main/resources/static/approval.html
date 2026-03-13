@@ -19,7 +19,9 @@
 <div class="page-wrapper">
   <aside class="sidebar">
     <div class="sidebar-logo"><h1>PAYROLL</h1><p>급여 지급 관리 시스템</p></div>
-    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- 동적 로드 -->
+    </nav>
     <div class="sidebar-footer">
       <div class="user-chip">
         <div class="user-avatar" id="userAvatar">?</div>
@@ -79,8 +81,28 @@
 
   if (user) {
     renderUserChip(user);
-    Auth.buildNav(user, 'approval.html');
+    buildNav(user);
     loadPending();
+  }
+
+  function buildNav(u) {
+    const isHR = u.role === 'HR' || u.role === 'ADMIN';
+    const items = [
+      { href: 'dashboard.html',       icon: '🏠', label: '대시보드' },
+      ...(u.role === 'EMPLOYEE'
+        ? [{ href: 'overtime.html', icon: '🌙', label: '야근 신청' }]
+        : []),
+      ...(!isHR ? [{ href: 'approval.html', icon: '✅', label: '승인 처리', active: true }] : []),
+      ...(isHR ? [
+        { href: 'salary.html',        icon: '💰', label: '급여 지급' },
+        { href: 'employee-management.html', icon: '👥', label: '사용자 관리' },
+        { href: 'rank-management.html', icon: '⚙️', label: '직책 관리' },
+      ] : []),
+    ];
+    const nav = document.getElementById('sidebarNav');
+    nav.innerHTML = `<div class="nav-section">메뉴</div>` +
+      items.map(i => `<a href="${i.href}" class="nav-item ${i.active?'active':''}">
+        <span class="icon">${i.icon}</span>${i.label}</a>`).join('');
   }
 
   async function loadPending() {

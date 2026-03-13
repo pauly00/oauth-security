@@ -1,7 +1,7 @@
 // ============================================================
 // api.js — API call utilities
 // ============================================================
-const API_BASE = '/api';
+const API_BASE = 'http://localhost:8080/api';
 
 async function apiFetch(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -45,6 +45,8 @@ const API = {
     apiFetch(`/overtime/${id}/reject`, { method: 'POST', body: { approverId, comment } }),
   cancelOvertime: (id, requesterId) =>
     apiFetch(`/overtime/${id}/cancel`, { method: 'POST', body: { requesterId } }),
+  deleteOvertime: (id, requesterId) =>
+    apiFetch(`/overtime/${id}?requesterId=${requesterId}`, { method: 'DELETE' }),
 
   // Salary
   getSalaries: (companyId, yearMonth) =>

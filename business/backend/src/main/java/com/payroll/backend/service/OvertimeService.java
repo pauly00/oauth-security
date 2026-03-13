@@ -25,6 +25,9 @@ public class OvertimeService {
     private final EmployeeRepository employeeRepo;
     private final SalaryPaymentRepository salaryRepo;
 
+    private static final BigDecimal OVERTIME_HOURLY_RATE = BigDecimal.valueOf(10000);
+    private static final BigDecimal OVERTIME_MULTIPLIER = BigDecimal.valueOf(1.5);
+
     // ──────────────────────────────────────────────────────────
     // 야근 신청
     // ──────────────────────────────────────────────────────────
@@ -55,7 +58,7 @@ public class OvertimeService {
             // 상위 직책이 없으면 즉시 승인 처리
             ot.setStatus(OvertimeRequest.Status.APPROVED);
             // 야근 수당 계산
-            BigDecimal overtimePay = ot.getHours().multiply(BigDecimal.valueOf(10000)).multiply(BigDecimal.valueOf(1.5));
+            BigDecimal overtimePay = ot.getHours().multiply(OVERTIME_HOURLY_RATE).multiply(OVERTIME_MULTIPLIER);
             updateSalaryWithOvertimePay(requester, ot.getOvertimeDate(), overtimePay);
             overtimeRepo.save(ot);
         } else {
@@ -132,7 +135,7 @@ public class OvertimeService {
         if (allApproved) {
             ot.setStatus(OvertimeRequest.Status.APPROVED);
             // 야근 수당 계산 (시간당 기본급의 1.5배, 시간당 10,000원으로 가정)
-            BigDecimal overtimePay = ot.getHours().multiply(BigDecimal.valueOf(10000)).multiply(BigDecimal.valueOf(1.5));
+            BigDecimal overtimePay = ot.getHours().multiply(OVERTIME_HOURLY_RATE).multiply(OVERTIME_MULTIPLIER);
             updateSalaryWithOvertimePay(ot.getRequester(), ot.getOvertimeDate(), overtimePay);
         } else {
             ot.setStatus(OvertimeRequest.Status.IN_PROGRESS);

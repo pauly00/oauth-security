@@ -60,9 +60,29 @@
   const user = Auth.require();
   if (user) init();
 
+  function buildNav(u) {
+    const isHR = u.role === 'HR' || u.role === 'ADMIN';
+    const items = [
+      { href: 'dashboard.html',       icon: '🏠', label: '대시보드', active: true },
+      ...(u.role === 'EMPLOYEE'
+        ? [{ href: 'overtime.html', icon: '🌙', label: '야근 신청' }]
+        : []),
+      ...(!isHR ? [{ href: 'approval.html', icon: '✅', label: '승인 처리' }] : []),
+      ...(isHR ? [
+        { href: 'salary.html',        icon: '💰', label: '급여 지급' },
+        { href: 'employee-management.html', icon: '👥', label: '사용자 관리' },
+        { href: 'rank-management.html', icon: '⚙️', label: '직책 관리' },
+      ] : []),
+    ];
+    const nav = document.getElementById('sidebarNav');
+    nav.innerHTML = `<div class="nav-section">메뉴</div>` +
+      items.map(i => `<a href="${i.href}" class="nav-item ${i.active?'active':''}">
+        <span class="icon">${i.icon}</span>${i.label}</a>`).join('');
+  }
+
   async function init() {
     renderUserChip(user);
-    Auth.buildNav(user, 'dashboard.html');
+    buildNav(user);
     document.getElementById('welcomeMsg').textContent = `${user.name} ${user.rankTitle}님, 안녕하세요 👋`;
 
     try {
@@ -71,10 +91,8 @@
       const approved = overtimes.filter(o => o.status === 'APPROVED');
 
       const isHR = user.role === 'HR' || user.role === 'ADMIN';
-      const statsGrid = document.getElementById('statsGrid');
-      
       if (isHR) {
-        statsGrid.innerHTML = `
+        document.getElementById('statsGrid').innerHTML = `
           <div class="stat-card">
             <div class="stat-icon">📄</div>
             <div class="stat-value">${overtimes.length}</div>
@@ -97,15 +115,17 @@
           </div>
         `;
       } else {
-        statsGrid.style.display = 'none';
+        document.getElementById('statsGrid').style.display = 'none';
       }
 
       const tbody = document.getElementById('recentBody');
-      if (overtimes.length === 0) {
+      // HR이 아닌 직원은 최종 승인(APPROVED)된 내역 숨김
+      const displayList = isHR ? overtimes : overtimes.filter(o => o.status !== 'APPROVED');
+      if (displayList.length === 0) {
         tbody.innerHTML = '<tr class="empty-row"><td colspan="7">야근 신청 내역이 없습니다.</td></tr>';
         return;
       }
-      tbody.innerHTML = overtimes.slice(0, 10).map(o => `
+      tbody.innerHTML = displayList.slice(0, 10).map(o => `
         <tr>
           <td><strong>${o.requesterName}</strong></td>
           <td>${o.requesterRankTitle}</td>

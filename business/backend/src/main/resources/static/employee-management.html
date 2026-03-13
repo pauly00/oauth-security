@@ -10,7 +10,9 @@
 <div class="page-wrapper">
   <aside class="sidebar">
     <div class="sidebar-logo"><h1>PAYROLL</h1><p>급여 지급 관리 시스템</p></div>
-    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- 동적 로드 -->
+    </nav>
     <div class="sidebar-footer">
       <div class="user-chip">
         <div class="user-avatar" id="userAvatar">?</div>
@@ -88,9 +90,29 @@
 
   if (user) {
     renderUserChip(user);
-    Auth.buildNav(user, 'employee-management.html');
+    buildNav(user);
     loadRankLevels();
     loadEmployees();
+  }
+
+  function buildNav(u) {
+    const isHR = u.role === 'HR' || u.role === 'ADMIN';
+    const items = [
+      { href: 'dashboard.html',       icon: '🏠', label: '대시보드' },
+      ...(u.role === 'EMPLOYEE'
+        ? [{ href: 'overtime.html', icon: '🌙', label: '야근 신청' }]
+        : []),
+      ...(!isHR ? [{ href: 'approval.html', icon: '✅', label: '승인 처리' }] : []),
+      ...(isHR ? [
+        { href: 'salary.html',        icon: '💰', label: '급여 지급' },
+        { href: 'employee-management.html', icon: '👥', label: '사용자 관리', active: true },
+        { href: 'rank-management.html', icon: '⚙️', label: '직책 관리' },
+      ] : []),
+    ];
+    const nav = document.getElementById('sidebarNav');
+    nav.innerHTML = `<div class="nav-section">메뉴</div>` +
+      items.map(i => `<a href="${i.href}" class="nav-item ${i.active?'active':''}">
+        <span class="icon">${i.icon}</span>${i.label}</a>`).join('');
   }
 
   async function loadRankLevels() {
@@ -122,7 +144,7 @@
             ${emp.id === user.id
               ? '<span style="font-size:12px;color:var(--muted);">본인</span>'
               : `<button class="btn btn-outline btn-sm" onclick="deleteEmployee(${emp.id}, '${emp.name}')"
-                  style="color:var(--danger);border-color:var(--danger);">퇴사 처리</button>`}
+                  style="color:var(--danger);border-color:var(--danger);">삭제</button>`}
           </td>
         </tr>`).join('');
     } catch (e) {
@@ -170,10 +192,10 @@
   }
 
   async function deleteEmployee(id, name) {
-    if (!confirm(`"${name}" 사원을 퇴사 처리하시겠습니까?\n이후 해당 계정으로 로그인이 차단되며 목록에서 제외됩니다.`)) return;
+    if (!confirm(`"${name}" 사원을 삭제하시겠습니까?\n관련 야근 신청/승인 데이터도 영향받을 수 있습니다.`)) return;
     try {
       await API.deleteEmployee(id);
-      showToast(`"${name}" 퇴사 처리 완료`, 'success');
+      showToast(`"${name}" 삭제 완료`, 'success');
       await loadEmployees();
     } catch (e) {
       showToast(e.message, 'error');
