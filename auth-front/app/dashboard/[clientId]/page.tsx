@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getClients, deleteClient } from '@/lib/api/dashboard'
+import { getClientDetail, deleteClient } from '@/lib/api/dashboard'
 import { useRouter, useParams } from 'next/navigation'
 import Navbar from '@/app/components/dashboard/Navbar'
 import Sidebar from '@/app/components/dashboard/Sidebar'
@@ -13,7 +13,6 @@ export default function ClientDetailPage() {
 
     const [client, setClient] = useState<any>(null)
     const [loading, setLoading] = useState(true)
-    const [secretVisible, setSecretVisible] = useState(false)
 
     useEffect(() => {
         fetchClient()
@@ -22,17 +21,11 @@ export default function ClientDetailPage() {
     const fetchClient = async () => {
         setLoading(true)
         try {
-            const data = await getClients()
-            const found = data.find((c: any) => c.client_id === clientId)
-            setClient(found)
+            const data = await getClientDetail(clientId)
+            setClient(data)
         } catch (e) {
-            setClient({
-                client_id: clientId,
-                clientName: '내 첫번째 앱',
-                redirectUri: 'http://localhost:3000/callback',
-                client_secret: 'secret-abc-1234',
-                scopes: ['openid', 'profile', 'read'],
-            })
+            console.error('클라이언트 조회 실패', e)
+            setClient(null)
         } finally {
             setLoading(false)
         }
@@ -81,25 +74,19 @@ export default function ClientDetailPage() {
                             </div>
                             <div className="grid grid-cols-3 px-6 py-4">
                                 <span className="text-sm text-gray-500">클라이언트 ID</span>
-                                <span className="text-sm font-mono text-gray-800 col-span-2">{client.client_id}</span>
+                                <span className="text-sm font-mono text-gray-800 col-span-2">{client.clientId}</span>
                             </div>
                             <div className="grid grid-cols-3 px-6 py-4 items-center">
                                 <span className="text-sm text-gray-500">클라이언트 보안 비밀</span>
-                                <div className="col-span-2 flex items-center gap-3">
-                                    <span className="text-sm font-mono text-gray-800">
-                                        {secretVisible ? client.client_secret : '••••••••••••••••'}
+                                <div className="col-span-2">
+                                    <span className="text-sm text-gray-400 italic">
+                                        등록 시에만 표시됩니다.
                                     </span>
-                                    <button
-                                        onClick={() => setSecretVisible(prev => !prev)}
-                                        className="text-xs text-blue-600 hover:underline"
-                                    >
-                                        {secretVisible ? '숨기기' : '표시'}
-                                    </button>
                                 </div>
                             </div>
                             <div className="grid grid-cols-3 px-6 py-4">
                                 <span className="text-sm text-gray-500">Redirect URI</span>
-                                <span className="text-sm text-gray-800 col-span-2">{client.redirectUri}</span>
+                                <span className="text-sm text-gray-800 col-span-2">{client.redirectUris?.[0]}</span>
                             </div>
                             <div className="grid grid-cols-3 px-6 py-4">
                                 <span className="text-sm text-gray-500">스코프</span>

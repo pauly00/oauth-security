@@ -1,0 +1,21 @@
+# Node
+node_modules/
+dist/
+build/
+.next/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+.env*
+!.env.example
