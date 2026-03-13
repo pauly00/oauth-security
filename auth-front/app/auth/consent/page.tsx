@@ -16,7 +16,7 @@ const BACKEND_URL = process.env.BACKEND_URL;
 export default async function ConsentPage({ searchParams }: ConsentPageProps) {
   const { client_id, redirect_uri, scope, state } = await searchParams;
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get("gogle_session")?.value;
+  const sessionId = cookieStore.get("JSESSIONID")?.value;
 
   // 세션 없으면 로그인 페이지로
   if (!sessionId) {
@@ -42,6 +42,12 @@ export default async function ConsentPage({ searchParams }: ConsentPageProps) {
       );
     }
 
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      redirect(
+        `/?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}&state=${state}`
+      );
+    }
     const data = await res.json();
 
     // 이미 동의한 적 있으면 → Spring이 발급한 auth code로 바로 리다이렉트
