@@ -15,6 +15,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -54,7 +56,7 @@ public class AuthorizationServerConfig {
         return http.build();
     }
 
-    // --- 강사님 코드 ~~~
+    // jwkSource
 
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
@@ -108,5 +110,10 @@ public class AuthorizationServerConfig {
         return AuthorizationServerSettings.builder()
                 .issuer("http://localhost:9000")
                 .build();
+    }
+
+    @Bean
+    public OAuth2AuthorizationService authorizationService() {
+        return new InMemoryOAuth2AuthorizationService(); // 우선 메모리
     }
 }
