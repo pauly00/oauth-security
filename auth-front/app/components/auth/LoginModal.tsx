@@ -62,7 +62,7 @@ export default function LoginModal({
     if (clientId && redirectUri && scope && state) {
       window.location.href = `/auth/consent?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}`;
     } else {
-      window.location.href = "http://localhost:8080/dashboard.html";
+      window.location.href = "http://localhost:9000/oauth2/authorize?response_type=code&client_id=test-client&scope=openid profile&redirect_uri=http://localhost:3000/api/auth/callback/fisa";
     }
   }
 
