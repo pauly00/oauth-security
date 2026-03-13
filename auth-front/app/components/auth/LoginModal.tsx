@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import LoginForm from "./LoginForm";
 
-// 로그인 모달 컴포넌트
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,13 +14,6 @@ interface LoginModalProps {
   loggedInUsername?: string;
 }
 
-// 더미 권한 항목
-const DUMMY_SCOPES = [
-  { id: "read", label: "읽기 — 계정 정보 조회" },
-  { id: "write", label: "쓰기 — 데이터 생성 및 수정" },
-];
-
-// 로그인 모달 컴포넌트
 export default function LoginModal({
   isOpen,
   onClose,
@@ -32,8 +24,6 @@ export default function LoginModal({
   alreadyLoggedIn = false,
   loggedInUsername,
 }: LoginModalProps) {
-  const [selectedScopes, setSelectedScopes] = useState<string[]>(["read"]);
-
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -54,19 +44,14 @@ export default function LoginModal({
     if (clientId && redirectUri && scope && state) {
       window.location.href = `/auth/consent?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}`;
     } else {
-      window.location.href = "/dashboard";
+      window.location.href = "http://localhost:8080/dashboard.html";
     }
   }
 
-  function toggleScope(id: string) {
-    setSelectedScopes((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
-  }
-
+  // 이미 로그인된 경우 동의 화면으로 이동
   function handleConfirm() {
     onClose();
-    window.location.href = `/auth/consent?client_id=${clientId}&scope=${selectedScopes.join(",")}&state=${state}`;
+    window.location.href = `/auth/consent?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri ?? "")}&scope=${encodeURIComponent(scope ?? "")}&state=${state}`;
   }
 
   const GogleLogo = () => (
@@ -96,7 +81,7 @@ export default function LoginModal({
         <GogleLogo />
 
         {alreadyLoggedIn ? (
-          /* ── 이미 로그인된 경우: 확인 팝업 ── */
+          /* 이미 로그인된 경우: 계정 확인 후 동의 화면으로 이동 */
           <>
             <h2
               id="login-modal-title"
@@ -104,35 +89,11 @@ export default function LoginModal({
             >
               로그인하시겠습니까?
             </h2>
-            <p className="mb-6 text-center text-sm text-zinc-500">
+            <p className="mb-8 text-center text-sm text-zinc-500">
               <span className="font-medium text-zinc-700">{loggedInUsername}</span>
               &nbsp;계정으로 로그인되어 있습니다.
             </p>
 
-            {/* 더미 권한 선택 */}
-            <div className="mb-6 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                권한 선택 (더미)
-              </p>
-              <div className="flex flex-col gap-2">
-                {DUMMY_SCOPES.map(({ id, label }) => (
-                  <label
-                    key={id}
-                    className="flex cursor-pointer items-center gap-3 text-sm text-zinc-700"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedScopes.includes(id)}
-                      onChange={() => toggleScope(id)}
-                      className="h-4 w-4 rounded accent-black"
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 확인 / 취소 */}
             <div className="flex items-center justify-between">
               <button
                 type="button"
@@ -151,7 +112,7 @@ export default function LoginModal({
             </div>
           </>
         ) : (
-          /* ── 미로그인: 기존 로그인 폼 ── */
+          /* 미로그인: 로그인 폼 */
           <>
             <h2
               id="login-modal-title"

@@ -8,6 +8,8 @@ interface LoginButtonProps {
   redirectUri?: string;
   scope?: string;
   state?: string;
+  alreadyLoggedIn?: boolean;
+  loggedInUsername?: string;
 }
 
 export default function LoginButton({
@@ -15,11 +17,12 @@ export default function LoginButton({
   redirectUri,
   scope,
   state,
+  alreadyLoggedIn = false,
+  loggedInUsername = "",
 }: LoginButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  // 이미 로그인된 경우 모달을 바로 열어 확인 팝업 표시
+  const [isOpen, setIsOpen] = useState(alreadyLoggedIn);
 
-  // page.tsx에서 이미 로그인 여부를 확인하고 redirect 처리
-  // → 여기까지 왔으면 반드시 미로그인 상태
   return (
     <>
       <button
@@ -36,6 +39,8 @@ export default function LoginButton({
         redirectUri={redirectUri}
         scope={scope}
         state={state}
+        alreadyLoggedIn={alreadyLoggedIn}
+        loggedInUsername={loggedInUsername}
       />
     </>
   );

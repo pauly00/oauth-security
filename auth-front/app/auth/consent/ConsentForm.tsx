@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 // scope → 한국어 설명 매핑
 const SCOPE_LABELS: Record<string, { label: string; desc: string }> = {
   openid: { label: "기본 정보 확인", desc: "사용자 식별자(ID)를 읽습니다." },
@@ -10,53 +8,30 @@ const SCOPE_LABELS: Record<string, { label: string; desc: string }> = {
   write: { label: "쓰기", desc: "계정 데이터를 생성·수정합니다." },
 };
 
+// 동의 폼 props
 interface ConsentFormProps {
   clientName: string;
   requestedScopes: string[];
   clientId: string;
-  scope: string;
   state: string;
   redirectUri: string;
+  authServerUrl: string;
 }
 
 export default function ConsentForm({
   clientName,
   requestedScopes,
   clientId,
-  scope,
   state,
   redirectUri,
+  authServerUrl,
 }: ConsentFormProps) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  async function handleAllow() {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/auth/consent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId, scope, state, redirectUri, allow: true }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message ?? "동의 처리 중 오류가 발생했습니다.");
-      }
-
-      const { redirectUrl } = await res.json();
-      window.location.href = redirectUrl;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "알 수 없는 오류");
-      setLoading(false);
-    }
-  }
-
   function handleDeny() {
-    // 거부 시 redirect_uri에 error 파라미터로 알림
     window.location.href = `${redirectUri}?error=access_denied&state=${state}`;
   }
+
+  // Spring Authorization Server가 기대하는 POST /oauth2/authorize 엔드포인트
+  const consentActionUrl = `${authServerUrl}/oauth2/authorize`;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -81,54 +56,64 @@ export default function ConsentForm({
           고글 계정 접근을 요청합니다.
         </p>
 
-        {/* 요청 권한 목록 */}
-        <div className="mb-6 rounded-xl border border-zinc-200 bg-zinc-50 divide-y divide-zinc-200">
-          {requestedScopes.map((s) => {
-            const info = SCOPE_LABELS[s] ?? { label: s, desc: `${s} 권한` };
-            return (
-              <div key={s} className="flex items-start gap-3 px-4 py-3">
-                <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-[10px] font-bold">
-                  ✓
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-zinc-800">{info.label}</p>
-                  <p className="text-xs text-zinc-500">{info.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {/*
+          Spring Authorization Server의 /oauth2/authorize 에 직접 POST 합니다.
+          - client_id, state: hidden input
+          - scope: 각 항목을 checkbox (name="scope") 로 전송
+        */}
+        <form action={consentActionUrl} method="POST">
+          <input type="hidden" name="client_id" value={clientId} />
+          <input type="hidden" name="state" value={state} />
 
-        {/* 안내 문구 */}
-        <p className="mb-6 text-xs text-zinc-400 text-center">
-          허용 시 <span className="font-medium text-zinc-600">{clientName}</span>이
-          위 권한으로 내 고글 계정에 접근할 수 있습니다.
-          언제든지 고글 계정 설정에서 취소할 수 있습니다.
-        </p>
+          {/* 요청 권한 목록 (checkbox) */}
+          <div className="mb-6 rounded-xl border border-zinc-200 bg-zinc-50 divide-y divide-zinc-200">
+            {requestedScopes.map((s) => {
+              const info = SCOPE_LABELS[s] ?? { label: s, desc: `${s} 권한` };
+              return (
+                <label
+                  key={s}
+                  className="flex cursor-pointer items-start gap-3 px-4 py-3"
+                >
+                  <input
+                    type="checkbox"
+                    name="scope"
+                    value={s}
+                    defaultChecked
+                    className="mt-1 h-4 w-4 flex-shrink-0 rounded accent-black"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-zinc-800">{info.label}</p>
+                    <p className="text-xs text-zinc-500">{info.desc}</p>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
 
-        {error && (
-          <p className="mb-4 text-center text-xs text-red-500">{error}</p>
-        )}
+          {/* 안내 문구 */}
+          <p className="mb-6 text-xs text-zinc-400 text-center">
+            허용 시 <span className="font-medium text-zinc-600">{clientName}</span>이
+            위 권한으로 내 고글 계정에 접근할 수 있습니다.
+            언제든지 고글 계정 설정에서 취소할 수 있습니다.
+          </p>
 
-        {/* 버튼 */}
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleDeny}
-            disabled={loading}
-            className="text-sm font-medium text-zinc-500 hover:underline disabled:opacity-50"
-          >
-            거부
-          </button>
-          <button
-            type="button"
-            onClick={handleAllow}
-            disabled={loading}
-            className="rounded-full bg-black px-8 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
-          >
-            {loading ? "처리 중..." : "허용"}
-          </button>
-        </div>
+          {/* 버튼 */}
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={handleDeny}
+              className="text-sm font-medium text-zinc-500 hover:underline"
+            >
+              거부
+            </button>
+            <button
+              type="submit"
+              className="rounded-full bg-black px-8 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+            >
+              허용
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
