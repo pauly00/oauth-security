@@ -22,6 +22,8 @@
 - **Database**: MySQL
 - **ORM**: Spring Data JPA
 - **Security**: Spring Security (RBAC 적용)
+- **OAuth 2.1**: Spring Authorization Server 기반 인가 서버 구축
+- **JWT**: RSA 키 기반 Access Token 발급, 유효기간 1시간
 
 ## ✨ 주요 기능
 
@@ -45,6 +47,13 @@
 - **자동 수당 계산**: 승인된 야근 시간을 기준으로 시간당 1.5배 수당 자동 산출
 - **일괄 지급**: HR 담당자가 해당 월의 미지급 급여를 원클릭으로 일괄 지급 처리
 - **데이터 시각화**: 직관적인 대시보드 카드로 회사/개인의 활동 현황 요약
+
+### 5. OAuth 클라이언트 관리 (OAuth Developer Console)
+- **관리자 대시보드**: 카카오/구글 디벨로퍼스 콘솔과 유사한 OAuth 클라이언트 관리 페이지 구현
+- **클라이언트 등록**: 앱 이름, Redirect URI, 스코프 입력을 통한 client_id/secret 자동 발급
+- **보안 처리**: client_secret BCrypt 암호화 저장, 최초 발급 시에만 원본 노출
+- **클라이언트 조회/삭제**: 등록된 OAuth 앱 목록 조회 및 상세 정보 확인, 삭제 기능
+- **UI/UX**: Google 콘솔 디자인을 모티브로 한 직관적인 인터페이스 (고글 브랜딩)
 
 ## 📐 핵심 비즈니스 로직
 
