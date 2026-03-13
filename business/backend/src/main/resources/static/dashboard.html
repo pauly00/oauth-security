@@ -60,28 +60,9 @@
   const user = Auth.require();
   if (user) init();
 
-  function buildNav(u) {
-    const isHR = u.role === 'HR' || u.role === 'ADMIN';
-    const items = [
-      { href: 'dashboard.html',       icon: '🏠', label: '대시보드', active: true },
-      ...(u.role === 'EMPLOYEE' && u.rankLevel === 1 
-        ? [{ href: 'overtime.html', icon: '🌙', label: '야근 신청' }]
-        : []),
-      { href: 'approval.html',        icon: '✅', label: '승인 처리' },
-      ...(isHR ? [
-        { href: 'salary.html',        icon: '💰', label: '급여 지급' },
-        { href: 'rank-management.html', icon: '⚙️', label: '직책 관리' },
-      ] : []),
-    ];
-    const nav = document.getElementById('sidebarNav');
-    nav.innerHTML = `<div class="nav-section">메뉴</div>` +
-      items.map(i => `<a href="${i.href}" class="nav-item ${i.active?'active':''}">
-        <span class="icon">${i.icon}</span>${i.label}</a>`).join('');
-  }
-
   async function init() {
     renderUserChip(user);
-    buildNav(user);
+    Auth.buildNav(user, 'dashboard.html');
     document.getElementById('welcomeMsg').textContent = `${user.name} ${user.rankTitle}님, 안녕하세요 👋`;
 
     try {
@@ -90,28 +71,34 @@
       const approved = overtimes.filter(o => o.status === 'APPROVED');
 
       const isHR = user.role === 'HR' || user.role === 'ADMIN';
-      document.getElementById('statsGrid').innerHTML = `
-        <div class="stat-card">
-          <div class="stat-icon">📄</div>
-          <div class="stat-value">${overtimes.length}</div>
-          <div class="stat-label">전체 야근 신청</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⏳</div>
-          <div class="stat-value">${pending.length}</div>
-          <div class="stat-label">처리 중</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">✅</div>
-          <div class="stat-value">${approved.length}</div>
-          <div class="stat-label">승인 완료</div>
-        </div>
-        ${isHR ? `<div class="stat-card">
-          <div class="stat-icon">💼</div>
-          <div class="stat-value">${user.companyName}</div>
-          <div class="stat-label">소속 회사</div>
-        </div>` : ''}
-      `;
+      const statsGrid = document.getElementById('statsGrid');
+      
+      if (isHR) {
+        statsGrid.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-icon">📄</div>
+            <div class="stat-value">${overtimes.length}</div>
+            <div class="stat-label">전체 야근 신청</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value">${pending.length}</div>
+            <div class="stat-label">처리 중</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">${approved.length}</div>
+            <div class="stat-label">승인 완료</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💼</div>
+            <div class="stat-value">${user.companyName}</div>
+            <div class="stat-label">소속 회사</div>
+          </div>
+        `;
+      } else {
+        statsGrid.style.display = 'none';
+      }
 
       const tbody = document.getElementById('recentBody');
       if (overtimes.length === 0) {

@@ -34,6 +34,10 @@ public class Employee {
     @Column(nullable = false, length = 20)
     private Role role;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean deactivated = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

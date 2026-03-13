@@ -19,12 +19,7 @@
 <div class="page-wrapper">
   <aside class="sidebar">
     <div class="sidebar-logo"><h1>PAYROLL</h1><p>급여 지급 관리 시스템</p></div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">메뉴</div>
-      <a href="dashboard.html" class="nav-item"><span class="icon">🏠</span>대시보드</a>
-      <a href="approval.html"  class="nav-item active"><span class="icon">✅</span>승인 처리</a>
-      <div id="hrMenuItems"></div>
-    </nav>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
     <div class="sidebar-footer">
       <div class="user-chip">
         <div class="user-avatar" id="userAvatar">?</div>
@@ -84,12 +79,7 @@
 
   if (user) {
     renderUserChip(user);
-    const isHR = user.role === 'HR' || user.role === 'ADMIN';
-    if (isHR) {
-      document.getElementById('hrMenuItems').innerHTML = `
-        <a href="salary.html" class="nav-item"><span class="icon">💰</span>급여 지급</a>
-        <a href="rank-management.html" class="nav-item"><span class="icon">⚙️</span>직책 관리</a>`;
-    }
+    Auth.buildNav(user, 'approval.html');
     loadPending();
   }
 

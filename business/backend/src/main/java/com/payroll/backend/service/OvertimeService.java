@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,8 +42,8 @@ public class OvertimeService {
         ot = overtimeRepo.save(ot);
 
         // 승인 체인 자동 생성: 신청자보다 level이 높은 EMPLOYEE 역할 사원들만
-        List<Employee> approvers = employeeRepo
-                .findByCompanyIdAndRankLevelLevelGreaterThanOrderByRankLevelLevelAsc(
+        List<Employee> possibleApprovers = employeeRepo
+                .findByCompanyIdAndDeactivatedFalseAndRankLevelLevelGreaterThanOrderByRankLevelLevelAsc(
                         requester.getCompany().getId(),
                         requester.getRankLevel().getLevel()
                 )
@@ -50,20 +51,16 @@ public class OvertimeService {
                 .filter(e -> e.getRole() == Employee.Role.EMPLOYEE)
                 .collect(Collectors.toList());
 
-        if (approvers.isEmpty()) {
+        if (possibleApprovers.isEmpty()) {
             // 상위 직책이 없으면 즉시 승인 처리
             ot.setStatus(OvertimeRequest.Status.APPROVED);
-            String yearMonth = ot.getOvertimeDate().toString().substring(0, 7);
+            // 야근 수당 계산
             BigDecimal overtimePay = ot.getHours().multiply(BigDecimal.valueOf(10000)).multiply(BigDecimal.valueOf(1.5));
-            salaryRepo.findByEmployeeIdAndYearMonth(requester.getId(), yearMonth).ifPresent(sal -> {
-                sal.setOvertimePay(sal.getOvertimePay().add(overtimePay));
-                sal.setTotalSalary(sal.getBaseSalary().add(sal.getOvertimePay()));
-                salaryRepo.save(sal);
-            });
+            updateSalaryWithOvertimePay(requester, ot.getOvertimeDate(), overtimePay);
             overtimeRepo.save(ot);
         } else {
             int order = 1;
-            for (Employee approver : approvers) {
+            for (Employee approver : possibleApprovers) {
                 ApprovalStep step = ApprovalStep.builder()
                         .overtimeRequest(ot)
                         .approver(approver)
@@ -136,12 +133,7 @@ public class OvertimeService {
             ot.setStatus(OvertimeRequest.Status.APPROVED);
             // 야근 수당 계산 (시간당 기본급의 1.5배, 시간당 10,000원으로 가정)
             BigDecimal overtimePay = ot.getHours().multiply(BigDecimal.valueOf(10000)).multiply(BigDecimal.valueOf(1.5));
-            String yearMonth = ot.getOvertimeDate().toString().substring(0, 7);
-            salaryRepo.findByEmployeeIdAndYearMonth(ot.getRequester().getId(), yearMonth).ifPresent(sal -> {
-                sal.setOvertimePay(sal.getOvertimePay().add(overtimePay));
-                sal.setTotalSalary(sal.getBaseSalary().add(sal.getOvertimePay()));
-                salaryRepo.save(sal);
-            });
+            updateSalaryWithOvertimePay(ot.getRequester(), ot.getOvertimeDate(), overtimePay);
         } else {
             ot.setStatus(OvertimeRequest.Status.IN_PROGRESS);
         }
@@ -235,5 +227,33 @@ public class OvertimeService {
                         .allMatch(prev -> prev.getStatus() == ApprovalStep.Status.APPROVED))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "현재 단계의 승인자가 아닙니다."));
+    }
+
+    private void updateSalaryWithOvertimePay(Employee employee, LocalDate date, BigDecimal pay) {
+        String yearMonthStr = date.toString().substring(0, 7);
+        SalaryPayment salary = salaryRepo.findByEmployeeIdAndYearMonth(employee.getId(), yearMonthStr).orElse(null);
+
+        // 이미 지급 완료된 달이라면 다음 달로 이월
+        if (salary != null && salary.getStatus() == SalaryPayment.Status.PAID) {
+            yearMonthStr = YearMonth.parse(yearMonthStr).plusMonths(1).toString();
+            salary = salaryRepo.findByEmployeeIdAndYearMonth(employee.getId(), yearMonthStr).orElse(null);
+        }
+
+        if (salary == null) {
+            // 이번 달에 없거나, 지급 완료되어 다음 달로 넘겼는데 다음 달 것도 없는 경우 새로 생성
+            salary = SalaryPayment.builder()
+                    .employee(employee)
+                    .yearMonth(yearMonthStr)
+                    .baseSalary(BigDecimal.ZERO) // 기본급은 0으로 시작 (HR이 추후 산정)
+                    .overtimePay(pay)
+                    .totalSalary(pay)
+                    .status(SalaryPayment.Status.PENDING)
+                    .build();
+        } else {
+            // 기존 레벨에 합산
+            salary.setOvertimePay(salary.getOvertimePay().add(pay));
+            salary.setTotalSalary(salary.getBaseSalary().add(salary.getOvertimePay()));
+        }
+        salaryRepo.save(salary);
     }
 }

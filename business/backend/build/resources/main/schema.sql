@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS employees (
     password      VARCHAR(100) NOT NULL COMMENT '더미: 평문 저장 (OAuth 연동 전)',
     role          ENUM('EMPLOYEE','HR','ADMIN') NOT NULL DEFAULT 'EMPLOYEE'
                   COMMENT 'HR=인사담당자, ADMIN=시스템관리자',
+    deactivated   BOOLEAN      NOT NULL DEFAULT FALSE COMMENT '퇴사 처리 여부',
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_email (email),

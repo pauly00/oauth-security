@@ -10,12 +10,7 @@
 <div class="page-wrapper">
   <aside class="sidebar">
     <div class="sidebar-logo"><h1>PAYROLL</h1><p>급여 지급 관리 시스템</p></div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">메뉴</div>
-      <a href="dashboard.html" class="nav-item"><span class="icon">🏠</span>대시보드</a>
-      <a href="overtime.html"  class="nav-item active"><span class="icon">🌙</span>야근 신청</a>
-      <a href="approval.html"  class="nav-item"><span class="icon">✅</span>승인 처리</a>
-    </nav>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
     <div class="sidebar-footer">
       <div class="user-chip">
         <div class="user-avatar" id="userAvatar">?</div>
@@ -61,7 +56,7 @@
       <div class="table-wrapper">
         <table>
           <thead>
-            <tr><th>날짜</th><th>시간</th><th>사유</th><th>상태</th><th>승인 체인</th></tr>
+            <tr><th>날짜</th><th>시간</th><th>사유</th><th>상태</th><th>승인 체인</th><th>작업</th></tr>
           </thead>
           <tbody id="myOvertimeBody">
             <tr class="empty-row"><td colspan="5">불러오는 중...</td></tr>
@@ -76,11 +71,17 @@
 <script src="js/auth.js"></script>
 <script>
   const user = Auth.require();
-  if (user) {
+
+  function init() {
     renderUserChip(user);
+    Auth.buildNav(user, 'overtime.html');
     // 오늘 날짜 기본값
     document.getElementById('overtimeDate').value = new Date().toISOString().split('T')[0];
     loadMyOvertimes();
+  }
+
+  if (user) {
+    init();
   }
 
   async function submitOvertime(e) {
@@ -127,9 +128,26 @@
           <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.reason}</td>
           <td>${statusBadge(o.status)}</td>
           <td>${renderStepChain(o.approvalSteps)}</td>
+          <td>
+            ${(o.status === 'PENDING' || o.status === 'IN_PROGRESS')
+              ? `<button class="btn btn-outline btn-sm" onclick="cancelOvertime(${o.id})" 
+                  style="color:var(--danger);border-color:var(--danger);">철회</button>`
+              : '<span style="font-size:12px;color:var(--muted)">-</span>'}
+          </td>
         </tr>`).join('');
     } catch (e) {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="5">오류: ${e.message}</td></tr>`;
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">오류: ${e.message}</td></tr>`;
+    }
+  }
+
+  async function cancelOvertime(id) {
+    if (!confirm('신청한 야근을 철회하시겠습니까?')) return;
+    try {
+      await API.cancelOvertime(id, user.id);
+      showToast('야근 신청이 철회되었습니다.', 'success');
+      await loadMyOvertimes();
+    } catch (e) {
+      showToast(e.message, 'error');
     }
   }
 </script>

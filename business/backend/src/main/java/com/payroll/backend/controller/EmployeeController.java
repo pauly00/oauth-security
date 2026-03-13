@@ -41,7 +41,7 @@ public class EmployeeController {
 
     @GetMapping("/company/{companyId}")
     public ResponseEntity<List<LoginResponse>> getByCompany(@PathVariable Long companyId) {
-        List<LoginResponse> list = employeeRepository.findByCompanyId(companyId).stream()
+        List<LoginResponse> list = employeeRepository.findByCompanyIdAndDeactivatedFalse(companyId).stream()
                 .map(LoginResponse::from)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(list);
@@ -73,22 +73,13 @@ public class EmployeeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
-        if (!employeeRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "사원을 찾을 수 없습니다.");
-        }
+        Employee emp = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사원을 찾을 수 없습니다."));
 
-        // 제약 조건 체크
-        if (overtimeRequestRepository.existsByRequesterId(id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "사원의 야근 신청 내역이 존재하여 삭제할 수 없습니다.");
-        }
-        if (approvalStepRepository.existsByApproverId(id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "사원이 승인자로 지정된 결재 단계가 존재하여 삭제할 수 없습니다.");
-        }
-        if (salaryPaymentRepository.existsByEmployeeId(id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "사원의 급여 지급 내역이 존재하여 삭제할 수 없습니다.");
-        }
+        // 물리 삭제 대신 비활성화(퇴사 처리) 진행
+        emp.setDeactivated(true);
+        employeeRepository.save(emp);
 
-        employeeRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 

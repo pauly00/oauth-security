@@ -43,6 +43,34 @@ const Auth = {
   isHR() {
     const u = this.get();
     return u && (u.role === 'HR' || u.role === 'ADMIN');
+  },
+
+  /** 사이드바 네비게이션 동적 생성 */
+  buildNav(user, activeHref) {
+    const nav = document.getElementById('sidebarNav');
+    if (!nav) return;
+
+    const isHR = user.role === 'HR' || user.role === 'ADMIN';
+    const items = [
+      { href: 'dashboard.html', icon: '🏠', label: '대시보드' },
+      // 야근 신청은 모든 일반 사원(결재자 포함)에게 노출
+      ...(user.role === 'EMPLOYEE' 
+        ? [{ href: 'overtime.html', icon: '🌙', label: '야근 신청' }]
+        : []),
+      ...(!isHR ? [{ href: 'approval.html', icon: '✅', label: '승인 처리' }] : []),
+      ...(isHR ? [
+        { href: 'salary.html',              icon: '💰', label: '급여 지급' },
+        { href: 'employee-management.html', icon: '👥', label: '사용자 관리' },
+        { href: 'rank-management.html',     icon: '⚙️', label: '직책 관리' },
+      ] : []),
+    ];
+
+    nav.innerHTML = `<div class="nav-section">메뉴</div>` +
+      items.map(i => {
+        const isActive = activeHref === i.href;
+        return `<a href="${i.href}" class="nav-item ${isActive ? 'active' : ''}">
+          <span class="icon">${i.icon}</span>${i.label}</a>`;
+      }).join('');
   }
 };
 

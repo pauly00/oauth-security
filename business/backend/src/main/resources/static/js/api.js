@@ -25,6 +25,8 @@ const API = {
   // Employees
   getEmployee: (id) => apiFetch(`/employees/${id}`),
   getEmployeesByCompany: (companyId) => apiFetch(`/employees/company/${companyId}`),
+  createEmployee: (data) => apiFetch('/employees', { method: 'POST', body: data }),
+  deleteEmployee: (id) => apiFetch(`/employees/${id}`, { method: 'DELETE' }),
 
   // Rank Levels
   getRankLevels: (companyId) => apiFetch(`/rank-levels/company/${companyId}`),
@@ -41,6 +43,8 @@ const API = {
     apiFetch(`/overtime/${id}/approve`, { method: 'POST', body: { approverId, comment } }),
   rejectOvertime: (id, approverId, comment) =>
     apiFetch(`/overtime/${id}/reject`, { method: 'POST', body: { approverId, comment } }),
+  cancelOvertime: (id, requesterId) =>
+    apiFetch(`/overtime/${id}/cancel`, { method: 'POST', body: { requesterId } }),
 
   // Salary
   getSalaries: (companyId, yearMonth) =>
