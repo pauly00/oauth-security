@@ -26,6 +26,25 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
 
             memberRepository.save(testMember);
+
+            Member testMember1 = Member.builder()
+                    .username("naver1@naver.com")
+                    .password(passwordEncoder.encode("1234"))
+                    .nickname("테스트유저")
+                    .role("USER") // SecurityConfig의 roles()와 매칭
+                    .build();
+
+            Member testMember2 = Member.builder()
+                    .username("naver2@naver.com")
+                    .password(passwordEncoder.encode("1234"))
+                    .nickname("테스트유저")
+                    .role("USER") // SecurityConfig의 roles()와 매칭
+                    .build();
+
+            memberRepository.save(testMember);
+            memberRepository.save(testMember1);
+            memberRepository.save(testMember2);
+
             System.out.println("✅ 테스트 유저 생성이 완료되었습니다: testuser / 1234");
         }
     }
