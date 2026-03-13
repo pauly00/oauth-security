@@ -23,6 +23,12 @@ public class ClientService {
     // 새로운 client 등록
     @Transactional
     public ClientRegistrationResponse registerNewClient(ClientRegistrationRequest request) {
+
+        // 중복 확인
+        if (clientRepository.existsByClientName(request.getClientName())) {
+            throw new IllegalArgumentException("이미 등록된 서비스 이름입니다: " + request.getClientName());
+        }
+
         // 랜덤 키 생성
         String clientId = SecretGenerator.generateClientId();
         String clientSecret = SecretGenerator.generateClientSecret();
