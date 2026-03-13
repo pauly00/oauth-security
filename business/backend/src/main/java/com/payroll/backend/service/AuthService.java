@@ -23,6 +23,10 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
+        if (!emp.isActive()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "비활성화된 계정입니다. 관리자에게 문의하세요.");
+        }
+
         return LoginResponse.from(emp);
     }
 }

@@ -7,8 +7,11 @@ import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Optional<Employee> findByEmail(String email);
-    List<Employee> findByCompanyId(Long companyId);
-    List<Employee> findByCompanyIdAndRankLevelLevelGreaterThanOrderByRankLevelLevelAsc(
+    
+    List<Employee> findByCompanyIdAndActiveTrue(Long companyId);
+
+    List<Employee> findByCompanyIdAndRankLevelLevelGreaterThanAndActiveTrueOrderByRankLevelLevelAsc(
             Long companyId, Integer level);
+
     boolean existsByRankLevelId(Long rankLevelId);
 }

@@ -40,9 +40,9 @@ public class OvertimeService {
                 .build();
         ot = overtimeRepo.save(ot);
 
-        // 승인 체인 자동 생성: 신청자보다 level이 높은 EMPLOYEE 역할 사원들만
+        // 승인 체인 자동 생성: 신청자보다 level이 높은 EMPLOYEE 역할 사원들 중 활성 사용자만
         List<Employee> approvers = employeeRepo
-                .findByCompanyIdAndRankLevelLevelGreaterThanOrderByRankLevelLevelAsc(
+                .findByCompanyIdAndRankLevelLevelGreaterThanAndActiveTrueOrderByRankLevelLevelAsc(
                         requester.getCompany().getId(),
                         requester.getRankLevel().getLevel()
                 )
