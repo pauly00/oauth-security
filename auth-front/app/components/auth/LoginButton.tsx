@@ -10,6 +10,7 @@ interface LoginButtonProps {
   state?: string;
   alreadyLoggedIn?: boolean;
   loggedInUsername?: string;
+  authServerUrl?: string;
 }
 
 export default function LoginButton({
@@ -19,8 +20,8 @@ export default function LoginButton({
   state,
   alreadyLoggedIn = false,
   loggedInUsername = "",
+  authServerUrl = "http://localhost:9000",
 }: LoginButtonProps) {
-  // 이미 로그인된 경우 모달을 바로 열어 확인 팝업 표시
   const [isOpen, setIsOpen] = useState(alreadyLoggedIn);
 
   return (
@@ -41,6 +42,7 @@ export default function LoginButton({
         state={state}
         alreadyLoggedIn={alreadyLoggedIn}
         loggedInUsername={loggedInUsername}
+        authServerUrl={authServerUrl}
       />
     </>
   );

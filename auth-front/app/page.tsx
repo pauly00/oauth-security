@@ -53,6 +53,7 @@ export default async function Home({ searchParams }: HomePageProps) {
         state={state}
         alreadyLoggedIn={alreadyLoggedIn}
         loggedInUsername={loggedInUsername}
+        authServerUrl={BACKEND_URL ?? "http://localhost:9000"}
       />
     </div>
   );
