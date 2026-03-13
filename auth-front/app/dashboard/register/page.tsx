@@ -10,8 +10,9 @@ export default function RegisterPage() {
     const router = useRouter()
     const [form, setForm] = useState({
         clientName: '',
-        redirectUri: '',
+        redirectUris: [''],
         scopes: [] as string[],
+        authorizationGrantTypes: ['authorization_code', 'refresh_token']
     })
     const [result, setResult] = useState<any>(null)
     const [loading, setLoading] = useState(false)
@@ -78,8 +79,8 @@ export default function RegisterPage() {
                         <input
                             className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                             placeholder="http://localhost:3000/callback"
-                            value={form.redirectUri}
-                            onChange={e => setForm({ ...form, redirectUri: e.target.value })}
+                            value={form.redirectUris[0]}
+                            onChange={e => setForm({ ...form, redirectUris: [e.target.value] })}
                         />
                     </div>
 
@@ -136,11 +137,11 @@ export default function RegisterPage() {
                             <div className="bg-gray-50 rounded p-4 space-y-3 text-sm">
                                 <div>
                                     <p className="text-gray-500 text-xs mb-1">클라이언트 ID</p>
-                                    <p className="font-mono text-gray-800">{result.client_id}</p>
+                                    <p className="font-mono text-gray-800">{result.clientId}</p>
                                 </div>
                                 <div>
                                     <p className="text-gray-500 text-xs mb-1">클라이언트 보안 비밀번호</p>
-                                    <p className="font-mono text-gray-800">{result.client_secret}</p>
+                                    <p className="font-mono text-gray-800">{result.clientSecret}</p>
                                 </div>
                             </div>
                             <p className="text-xs text-red-500 mt-3">

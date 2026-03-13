@@ -7,22 +7,23 @@ import apiClient from './client'
 // 응답으로 client_id, client_secret 받아옴
 export const registerClient = async (data: {
   clientName: string
-  redirectUri: string
+  redirectUris: string[]
   scopes: string[]
+  authorizationGrantTypes: string[]
 }) => {
-  const response = await apiClient.post('/client-register', data)
+  const response = await apiClient.post('/api/clients/register', data)
   return response.data
 }
 
 // 등록된 앱 목록을 GET으로 불러오는 함수
 export const getClients = async () => {
-  const response = await apiClient.get('/client-register')
+  const response = await apiClient.get('/api/clients')
   return response.data
 }
 
 // 특정 앱을 삭제하는 함수
 // clientId를 URL에 넣어서 어떤 앱 지울지 서버한테 알려줌
 export const deleteClient = async (clientId: string) => {
-  const response = await apiClient.delete(`/client-register/${clientId}`)
+  const response = await apiClient.delete(`/api/clients/${clientId}`)
   return response.data
 }
