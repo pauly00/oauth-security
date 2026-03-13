@@ -1,8 +1,6 @@
 package com.fisa.auth.platform.service;
 
-import com.fisa.auth.platform.domain.client.Client;
-import com.fisa.auth.platform.domain.client.ClientRegistrationRequest;
-import com.fisa.auth.platform.domain.client.ClientRegistrationResponse;
+import com.fisa.auth.platform.domain.client.*;
 import com.fisa.auth.platform.repository.ClientRepository;
 import com.fisa.auth.platform.util.SecretGenerator;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +20,7 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // 새로운 client 등록
     @Transactional
     public ClientRegistrationResponse registerNewClient(ClientRegistrationRequest request) {
         // 랜덤 키 생성
@@ -54,5 +55,27 @@ public class ClientService {
                 .clientSecret(clientSecret)
                 .clientName(client.getClientName())
                 .build();
+    }
+
+    // 목록 조회
+    public List<ClientListResponse> getAllClients() {
+        return clientRepository.findAll().stream()
+                .map(client -> new ClientListResponse(client.getClientName(), client.getClientId(), client.getRedirectUris()))
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    // 상세 조회
+    public ClientDetailResponse getClientDetail(String clientId) {
+        Client client = clientRepository.findByClientId(clientId)
+                .orElseThrow(() -> new RuntimeException("해당 client를 찾을 수 없습니다."));
+        return new ClientDetailResponse(client);
+    }
+
+    // 삭제
+    @Transactional
+    public void deleteClient(String clientId) {
+        Client client = clientRepository.findByClientId(clientId)
+                .orElseThrow(() -> new RuntimeException("삭제할 클라이언트가 없습니다."));
+        clientRepository.delete(client);
     }
 }
