@@ -26,13 +26,8 @@ export default function ClientDetailPage() {
             const found = data.find((c: any) => c.client_id === clientId)
             setClient(found)
         } catch (e) {
-            setClient({
-                client_id: clientId,
-                clientName: '내 첫번째 앱',
-                redirectUri: 'http://localhost:3000/callback',
-                client_secret: 'secret-abc-1234',
-                scopes: ['openid', 'profile', 'read'],
-            })
+            console.error('클라이언트 조회 실패', e)
+            setClient(null)
         } finally {
             setLoading(false)
         }

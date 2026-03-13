@@ -21,10 +21,8 @@ export default function DashboardPage() {
             const data = await getClients()
             setClients(data)
         } catch (e) {
-            setClients([
-                { client_id: 'abc123', clientName: '내 첫번째 앱', redirectUri: 'http://localhost:3000/callback' },
-                { client_id: 'def456', clientName: '테스트 앱', redirectUri: 'http://localhost:8080/callback' },
-            ])
+            console.error('클라이언트 목록 조회 실패', e)
+            setClients([])
         } finally {
             setLoading(false)
         }
