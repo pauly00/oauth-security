@@ -3,8 +3,11 @@
 import { useState } from 'react'
 import { registerClient } from '@/lib/api/dashboard'
 import { useRouter } from 'next/navigation'
+import Navbar from '@/app/components/dashboard/Navbar'
+import Sidebar from '@/app/components/dashboard/Sidebar'
 
 export default function RegisterPage() {
+    const router = useRouter()
     const [form, setForm] = useState({
         clientName: '',
         redirectUri: '',
@@ -12,7 +15,6 @@ export default function RegisterPage() {
     })
     const [result, setResult] = useState<any>(null)
     const [loading, setLoading] = useState(false)
-    const router = useRouter()
 
     const handleScopeChange = (scope: string) => {
         setForm(prev => ({
@@ -37,52 +39,15 @@ export default function RegisterPage() {
 
     return (
         <div className="min-h-screen bg-white flex flex-col">
-
-            {/* 구글 스타일 상단 네비게이션 */}
-            <nav className="flex items-center justify-between px-6 py-3 border-b">
-                <div className="flex items-center gap-1 text-2xl font-medium">
-                    <span className="text-blue-500">G</span>
-                    <span className="text-red-500">o</span>
-                    <span className="text-yellow-500">g</span>
-                    <span className="text-blue-500">l</span>
-                    <span className="text-green-500">e</span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-600">고글 Cloud Console</span>
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm">
-                        U
-                    </div>
-                </div>
-            </nav>
-
-            {/* 사이드바 + 본문 레이아웃 */}
+            <Navbar />
             <div className="flex flex-1">
-
-                {/* 사이드바 */}
-                <aside className="w-56 border-r pt-6 px-3">
-                    <p className="text-xs font-medium text-gray-500 px-3 mb-2">API 및 서비스</p>
-                    <ul className="text-sm text-gray-700 space-y-1">
-                        <li className="px-3 py-2 rounded-full bg-blue-50 text-blue-700 font-medium cursor-pointer">
-                            OAuth 클라이언트
-                        </li>
-                        <li
-                            className="px-3 py-2 rounded-full hover:bg-gray-100 cursor-pointer"
+                <Sidebar activePage="register" />
+                <main className="flex-1 px-10 py-8 max-w-2xl">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span
+                            className="text-gray-400 text-sm cursor-pointer hover:text-blue-500"
                             onClick={() => router.push('/dashboard')}
                         >
-                            대시보드
-                        </li>
-                        <li className="px-3 py-2 rounded-full hover:bg-gray-100 cursor-pointer">
-                            사용자 인증 정보
-                        </li>
-                    </ul>
-                </aside>
-
-                {/* 메인 컨텐츠 */}
-                <main className="flex-1 px-10 py-8 max-w-2xl">
-
-                    {/* 상단 타이틀 */}
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="text-gray-400 text-sm cursor-pointer hover:text-blue-500">
                             사용자 인증 정보
                         </span>
                         <span className="text-gray-400 text-sm">›</span>
@@ -93,7 +58,6 @@ export default function RegisterPage() {
                         클라이언트 ID는 고글 OAuth 서버에서 앱을 식별하는 데 사용됩니다.
                     </p>
 
-                    {/* 앱 이름 */}
                     <div className="mb-6">
                         <label className="block text-sm text-gray-700 mb-1">
                             앱 이름 <span className="text-red-500">*</span>
@@ -106,14 +70,11 @@ export default function RegisterPage() {
                         />
                     </div>
 
-                    {/* Redirect URI */}
                     <div className="mb-6">
                         <label className="block text-sm text-gray-700 mb-1">
                             승인된 리디렉션 URI <span className="text-red-500">*</span>
                         </label>
-                        <p className="text-xs text-gray-400 mb-2">
-                            인증 후 사용자가 리디렉션될 URI입니다.
-                        </p>
+                        <p className="text-xs text-gray-400 mb-2">인증 후 사용자가 리디렉션될 URI입니다.</p>
                         <input
                             className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                             placeholder="http://localhost:3000/callback"
@@ -122,12 +83,9 @@ export default function RegisterPage() {
                         />
                     </div>
 
-                    {/* 스코프 */}
                     <div className="mb-8">
                         <label className="block text-sm text-gray-700 mb-2">스코프</label>
-                        <p className="text-xs text-gray-400 mb-3">
-                            앱이 접근할 수 있는 데이터 범위를 선택하세요.
-                        </p>
+                        <p className="text-xs text-gray-400 mb-3">앱이 접근할 수 있는 데이터 범위를 선택하세요.</p>
                         <div className="border border-gray-200 rounded divide-y">
                             {[
                                 { value: 'openid', label: 'OpenID', desc: '사용자 식별자' },
@@ -151,7 +109,6 @@ export default function RegisterPage() {
                         </div>
                     </div>
 
-                    {/* 버튼 */}
                     <div className="flex gap-3">
                         <button
                             onClick={handleSubmit}
@@ -160,12 +117,14 @@ export default function RegisterPage() {
                         >
                             {loading ? '만드는 중...' : '만들기'}
                         </button>
-                        <button className="text-sm text-blue-600 px-6 py-2 rounded hover:bg-blue-50">
+                        <button
+                            onClick={() => router.push('/dashboard')}
+                            className="text-sm text-blue-600 px-6 py-2 rounded hover:bg-blue-50"
+                        >
                             취소
                         </button>
                     </div>
 
-                    {/* 결과 카드 */}
                     {result && (
                         <div className="mt-8 border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
                             <div className="flex items-center gap-2 mb-4">
@@ -185,7 +144,7 @@ export default function RegisterPage() {
                                 </div>
                             </div>
                             <p className="text-xs text-red-500 mt-3">
-                                ⚠️ 보안 비밀번호는 지금만 표시됩니다. 반드시 저장해 두세요.
+                                보안 비밀번호는 지금만 표시됩니다. 반드시 저장해 두세요.
                             </p>
                         </div>
                     )}
