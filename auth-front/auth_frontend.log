@@ -1,0 +1,26 @@
+
+> auth-front@0.1.0 dev
+> next dev
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /home/junkyu/repositories/oauth-security/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /home/junkyu/repositories/oauth-security/auth-front/package-lock.json
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.255.255.254:3000
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 1938ms
+○ Compiling / ...
+ GET / 200 in 12.5s (compile: 11.6s, render: 884ms)
+ GET / 200 in 57ms (compile: 6ms, render: 51ms)
+ GET / 200 in 106ms (compile: 8ms, render: 99ms)
+ GET / 200 in 118ms (compile: 6ms, render: 112ms)
+ POST /api/auth/login 302 in 542ms (compile: 279ms, render: 263ms)
+ POST /api/auth/login 302 in 45ms (compile: 5ms, render: 40ms)
+ POST /api/auth/login 302 in 39ms (compile: 5ms, render: 34ms)

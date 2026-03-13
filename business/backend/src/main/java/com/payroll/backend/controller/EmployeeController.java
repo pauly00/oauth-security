@@ -62,7 +62,6 @@ public class EmployeeController {
         Employee emp = Employee.builder()
                 .name(req.getName())
                 .email(req.getEmail())
-                .password(req.getPassword())
                 .role(Employee.Role.valueOf(req.getRole()))
                 .company(company)
                 .rankLevel(rankLevel)
@@ -87,7 +86,6 @@ public class EmployeeController {
     static class CreateEmployeeRequest {
         private String name;
         private String email;
-        private String password;
         private String role;  // EMPLOYEE, HR, ADMIN
         private Long companyId;
         private Long rankLevelId;

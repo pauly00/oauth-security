@@ -8,6 +8,8 @@ USE payroll_db;
 
 -- ── 기존 데이터 초기화 (FK 제약 조건 임시 해제) ──────────────────
 SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE oauth2_registered_client;
+TRUNCATE TABLE auth_members;
 TRUNCATE TABLE salary_payments;
 TRUNCATE TABLE approval_steps;
 TRUNCATE TABLE overtime_requests;
@@ -31,14 +33,24 @@ INSERT INTO rank_levels (id, company_id, level, title) VALUES
 -- ── 사원 (비밀번호: 1234 평문) ────────────────────────────────
 -- 계장: 김철수 (1), 대리: 이영희 (2), 과장: 최민수 (3), 차장: 한지원 (4), 부장: 박민준 (5), HR: 정수진 (6)
 -- 추가: 퇴사자 박퇴사 (7)
-INSERT INTO employees (id, company_id, rank_level_id, name, email, password, role, deactivated) VALUES
-  (1, 1, 1, '김철수', 'kim@fisa.com',  '1234', 'EMPLOYEE', FALSE),
-  (2, 1, 2, '이영희', 'lee@fisa.com',  '1234', 'EMPLOYEE', FALSE),
-  (3, 1, 3, '최민수', 'choi@fisa.com', '1234', 'EMPLOYEE', FALSE),
-  (4, 1, 4, '한지원', 'han@fisa.com',  '1234', 'EMPLOYEE', FALSE),
-  (5, 1, 5, '박민준', 'park@fisa.com', '1234', 'EMPLOYEE', FALSE),
-  (6, 1, 3, '정수진', 'hr@fisa.com',   '1234', 'HR',       FALSE),
-  (7, 1, 1, '박퇴사', 'out@fisa.com',  '1234', 'EMPLOYEE', TRUE);
+INSERT INTO employees (id, company_id, rank_level_id, name, email, role, deactivated) VALUES
+  (1, 1, 1, '김철수', 'kim@fisa.com',  'EMPLOYEE', FALSE),
+  (2, 1, 2, '이영희', 'lee@fisa.com',  'EMPLOYEE', FALSE),
+  (3, 1, 3, '최민수', 'choi@fisa.com', 'EMPLOYEE', FALSE),
+  (4, 1, 4, '한지원', 'han@fisa.com',  'EMPLOYEE', FALSE),
+  (5, 1, 5, '박민준', 'park@fisa.com', 'EMPLOYEE', FALSE),
+  (6, 1, 3, '정수진', 'hr@fisa.com',   'HR',       FALSE),
+  (7, 1, 1, '박퇴사', 'out@fisa.com',  'EMPLOYEE', TRUE);
+
+-- ── OAuth 멤버 (비밀번호: 1234 평문) ───────────────────────────
+INSERT INTO auth_members (email, password, nickname, role) VALUES
+  ('kim@fisa.com',  '{noop}1234', '김철수', 'EMPLOYEE'),
+  ('lee@fisa.com',  '{noop}1234', '이영희', 'EMPLOYEE'),
+  ('choi@fisa.com', '{noop}1234', '최민수', 'EMPLOYEE'),
+  ('han@fisa.com',  '{noop}1234', '한지원', 'EMPLOYEE'),
+  ('park@fisa.com', '{noop}1234', '박민준', 'EMPLOYEE'),
+  ('hr@fisa.com',   '{noop}1234', '정수진', 'HR'),
+  ('out@fisa.com',  '{noop}1234', '박퇴사', 'EMPLOYEE');
 
 -- ── 야근 신청 데이터 ──────────────────────────────────────────
 -- 1. 철회 테스트용 (김철수 - PENDING)
@@ -78,3 +90,9 @@ INSERT INTO salary_payments (employee_id, `year_month`, base_salary, overtime_pa
   (4, '2026-03', 4400000, 0,     4400000, 'PENDING'),
   (5, '2026-03', 5200000, 0,     5200000, 'PENDING'),
   (6, '2026-03', 3800000, 0,     3800000, 'PENDING');
+
+-- ── OAuth2 클라이언트 ───────────────────────────────────────────
+INSERT INTO oauth2_registered_client (id, client_id, client_name, client_secret, client_authentication_methods, authorization_grant_types, redirect_uris, scopes, client_settings, token_settings)
+VALUES ('1', 'test-client', 'Test Client', '{noop}secret', 'client_secret_basic,client_secret_post', 'authorization_code,refresh_token', 'http://localhost:3001/api/auth/callback', 'openid,profile,read,write', 
+'{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":false,"settings.client.require-authorization-consent":true}', 
+'{"@class":"java.util.Collections$UnmodifiableMap","settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000],"settings.token.access-token-time-to-live":["java.time.Duration",3600.000000000],"settings.token.refresh-token-time-to-live":["java.time.Duration",3600.000000000],"settings.token.reuse-refresh-tokens":true,"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.id-token-signature-algorithm":["org.springframework.security.oauth2.jose.jws.SignatureAlgorithm","RS256"]}');

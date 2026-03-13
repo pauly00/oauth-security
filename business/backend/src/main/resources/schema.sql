@@ -10,6 +10,18 @@ CREATE DATABASE IF NOT EXISTS payroll_db
 
 USE payroll_db;
 
+-- ── 기존 테이블 삭제 (초기화 보장) ──────────────────────────────
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS oauth2_registered_client;
+DROP TABLE IF EXISTS auth_members;
+DROP TABLE IF EXISTS salary_payments;
+DROP TABLE IF EXISTS approval_steps;
+DROP TABLE IF EXISTS overtime_requests;
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS rank_levels;
+DROP TABLE IF EXISTS companies;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- ── 회사 ─────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS companies (
     id         BIGINT       NOT NULL AUTO_INCREMENT,
@@ -37,9 +49,7 @@ CREATE TABLE IF NOT EXISTS employees (
     rank_level_id BIGINT       NOT NULL,
     name          VARCHAR(50)  NOT NULL,
     email         VARCHAR(100) NOT NULL,
-    password      VARCHAR(100) NOT NULL COMMENT '더미: 평문 저장 (OAuth 연동 전)',
-    role          ENUM('EMPLOYEE','HR','ADMIN') NOT NULL DEFAULT 'EMPLOYEE'
-                  COMMENT 'HR=인사담당자, ADMIN=시스템관리자',
+    role          ENUM('EMPLOYEE','HR','ADMIN') NOT NULL DEFAULT 'EMPLOYEE',
     deactivated   BOOLEAN      NOT NULL DEFAULT FALSE COMMENT '퇴사 처리 여부',
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
@@ -92,4 +102,34 @@ CREATE TABLE IF NOT EXISTS salary_payments (
     UNIQUE KEY uq_emp_month (employee_id, `year_month`),
     CONSTRAINT fk_sal_employee FOREIGN KEY (employee_id) REFERENCES employees(id),
     CONSTRAINT fk_sal_hr       FOREIGN KEY (hr_id)       REFERENCES employees(id)
+) ENGINE=InnoDB;
+
+-- ── OAuth 멤버 (계정 정보) ──────────────────────────────────────
+CREATE TABLE IF NOT EXISTS auth_members (
+    id         BIGINT       NOT NULL AUTO_INCREMENT,
+    email      VARCHAR(100) NOT NULL,
+    password   VARCHAR(255) NOT NULL,
+    nickname   VARCHAR(50),
+    role       VARCHAR(20)  NOT NULL,
+    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_auth_email (email)
+) ENGINE=InnoDB;
+
+-- ── OAuth2 테이블 ───────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS oauth2_registered_client (
+    id                            VARCHAR(100)  NOT NULL,
+    client_id                     VARCHAR(100)  NOT NULL,
+    client_id_issued_at           TIMESTAMP     DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    client_secret                 VARCHAR(200)  DEFAULT NULL,
+    client_secret_expires_at      TIMESTAMP     DEFAULT NULL,
+    client_name                   VARCHAR(200)  NOT NULL,
+    client_authentication_methods VARCHAR(1000) NOT NULL,
+    authorization_grant_types     VARCHAR(1000) NOT NULL,
+    redirect_uris                 VARCHAR(1000) DEFAULT NULL,
+    post_logout_redirect_uris     VARCHAR(1000) DEFAULT NULL,
+    scopes                        VARCHAR(1000) NOT NULL,
+    client_settings               VARCHAR(2000) NOT NULL,
+    token_settings                VARCHAR(2000) NOT NULL,
+    PRIMARY KEY (id)
 ) ENGINE=InnoDB;

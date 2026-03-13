@@ -23,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         //UserDetails 객체로 변환
         return User.withUsername(member.getUsername())
                 .password(member.getPassword()) // 암호화된 비밀번호
-                .roles(member.getRole())
+                .roles(member.getRole().name())
                 .build();
     }
 }

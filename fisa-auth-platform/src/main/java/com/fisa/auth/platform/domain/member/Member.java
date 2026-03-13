@@ -8,10 +8,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "member") // 테이블명 명시
+@Table(name = "auth_members") 
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA를 위한 기본 생성자 (접근 제한으로 안전성 확보)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class Member {
@@ -21,18 +21,17 @@ public class Member {
     private Long id;
 
     @NotNull
-    @Column(unique = true)
+    @Column(unique = true, name = "email")
     private String username;
 
     @NotNull
     private String password;
 
-    private String nickname;
-
     @NotNull
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
-    @CreationTimestamp // INSERT 시 현재 시간 자동 입력
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt; // Java 8 이후로는 Timestamp 대신 LocalDateTime 권장 (CamelCase)
+    private LocalDateTime createdAt;
 }

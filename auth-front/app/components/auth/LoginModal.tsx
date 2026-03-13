@@ -59,11 +59,12 @@ export default function LoginModal({
 
   function handleLoginSuccess() {
     onClose();
-    if (clientId && redirectUri && scope && state) {
-      window.location.href = `/auth/consent?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}`;
-    } else {
-      window.location.href = "http://localhost:9000/oauth2/authorize?response_type=code&client_id=test-client&scope=openid profile&redirect_uri=http://localhost:3000/api/auth/callback/fisa";
-    }
+    // 빽단에서 온 redirectUri가 있다면 그걸 사용, 없으면 test-client 기본값 시뮬레이션
+    const targetRedirectUri = redirectUri || "http://localhost:3001/api/auth/callback";
+    const targetClientId = clientId || "test-client";
+    const targetScope = scope || "openid profile";
+    
+    window.location.href = `/auth/consent?response_type=code&client_id=${targetClientId}&redirect_uri=${encodeURIComponent(targetRedirectUri)}&scope=${encodeURIComponent(targetScope)}&state=${state || ""}`;
   }
 
   const GogleLogo = () => (
@@ -106,10 +107,30 @@ export default function LoginModal({
               &nbsp;계정으로 로그인되어 있습니다.
             </p>
 
-            <form action={`${authServerUrl}/oauth2/authorize`} method="POST">
-              <input type="hidden" name="client_id" value={clientId} />
-              <input type="hidden" name="state" value={state} />
-
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const response = await fetch(`${authServerUrl}/api/auth/consent`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include", // JSESSIONID 포함
+                  body: JSON.stringify({
+                    client_id: clientId,
+                    state: state,
+                    scope: selectedScopes.join(" "),
+                  }),
+                });
+                if (response.ok) {
+                  const data = await response.json();
+                  if (data.redirectUri) window.location.href = data.redirectUri;
+                } else {
+                  alert("오류가 발생했습니다.");
+                }
+              } catch (err) {
+                console.error(err);
+                alert("서버 연결 실패");
+              }
+            }}>
               <div className="mb-6 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-4">
                 <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
                   권한 선택
@@ -122,8 +143,6 @@ export default function LoginModal({
                     >
                       <input
                         type="checkbox"
-                        name="scope"
-                        value={s}
                         checked={selectedScopes.includes(s)}
                         onChange={() => toggleScope(s)}
                         className="h-4 w-4 rounded accent-black"

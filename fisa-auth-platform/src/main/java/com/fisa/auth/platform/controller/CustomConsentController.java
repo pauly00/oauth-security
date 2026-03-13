@@ -10,62 +10,82 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
 public class CustomConsentController {
 
-    // TODO : 디비 저장소 (지금은 메모리/기본값)
     private final OAuth2AuthorizationService authorizationService;
     private final RegisteredClientRepository registeredClientRepository;
 
+    @GetMapping("/api/oauth/consent/status")
+    public ResponseEntity<?> getConsentStatus(
+            @RequestParam("client_id") String clientId,
+            @RequestParam("scope") String scope) {
+        
+        RegisteredClient registeredClient = registeredClientRepository.findByClientId(clientId);
+        if (registeredClient == null) {
+            return ResponseEntity.status(404).body("Client not found");
+        }
+
+        return ResponseEntity.ok(Map.of(
+            "alreadyConsented", false,
+            "clientName", registeredClient.getClientName(),
+            "requestedScopes", scope.split(" ")
+        ));
+    }
+
     @PostMapping("/api/auth/consent")
     public ResponseEntity<?> handleConsent(
-            @RequestBody Map<String, String> request,
+            @RequestBody Map<String, Object> request,
             Authentication authentication) {
 
-        // 1. 요청 데이터 꺼내기
-        String clientId = request.get("client_id");
-        String state = request.get("state");
-        String scope = request.get("scope");
+        String clientId = (String) request.get("client_id");
+        String state = (String) request.get("state");
+        String redirectUriParam = (String) request.get("redirect_uri");
+        Object scopeObj = request.get("scope");
+        
+        String scopeStr = "";
+        if (scopeObj instanceof String) {
+            scopeStr = (String) scopeObj;
+        } else if (scopeObj instanceof List) {
+            scopeStr = String.join(" ", (List<String>) scopeObj);
+        }
 
-        // 2. 클라이언트 정보 조회
         RegisteredClient registeredClient = registeredClientRepository.findByClientId(clientId);
         if (registeredClient == null) {
             return ResponseEntity.status(400).body("클라이언트를 찾을 수 없습니다.");
         }
 
-        // 3. 인가 코드 생성
+        // 인가 코드에서 보냈던 redirect_uri가 나중에 토큰 교환 시에도 일치해야 함
+        // 파라미터로 안 왔다면 클라이언트 등록 정보의 첫 번째를 사용
+        String actualRedirectUri = (redirectUriParam != null && !redirectUriParam.isEmpty()) 
+                ? redirectUriParam 
+                : registeredClient.getRedirectUris().iterator().next();
+
         String codeValue = UUID.randomUUID().toString();
 
-        // 4. [중요] OAuth2Authorization 객체 생성 및 저장
-        // 이 로직을 "가져다 붙여야" 나중에 토큰 발급이 됩니다.
         OAuth2Authorization authorization = OAuth2Authorization.withRegisteredClient(registeredClient)
                 .principalName(authentication.getName())
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizedScopes(Set.of(scope.split(" ")))
+                .authorizedScopes(Set.of(scopeStr.split(" ")))
                 .token(new OAuth2AuthorizationCode(
                         codeValue,
                         Instant.now(),
-                        Instant.now().plus(Duration.ofMinutes(5)))) // 일단 5분
+                        Instant.now().plus(Duration.ofMinutes(5))))
                 .attribute(OAuth2ParameterNames.STATE, state)
+                .attribute(OAuth2ParameterNames.REDIRECT_URI, actualRedirectUri) // 중요: REDIRECT_URI 추가
                 .build();
 
-        // 5. DB(혹은 메모리)에 저장
         authorizationService.save(authorization);
 
-        // 6. 서비스 앱으로 돌아갈 최종 주소 응답
-        String redirectUri = registeredClient.getRedirectUris().iterator().next();
-        String finalUrl = String.format("%s?code=%s&state=%s", redirectUri, codeValue, state);
+        String finalUrl = String.format("%s?code=%s&state=%s", actualRedirectUri, codeValue, state);
 
         return ResponseEntity.ok(Map.of("redirectUri", finalUrl));
     }

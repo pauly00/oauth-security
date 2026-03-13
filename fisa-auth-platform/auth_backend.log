@@ -1,0 +1,96 @@
+Starting a Gradle Daemon, 4 stopped Daemons could not be reused, use --status for details
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :resolveMainClassName UP-TO-DATE
+
+> Task :bootRun
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.3)
+
+2026-03-13T20:19:33.902+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] c.f.auth.platform.FisaOAuthApplication   : Starting FisaOAuthApplication using Java 17.0.17 with PID 258726 (/home/junkyu/repositories/oauth-security/fisa-auth-platform/build/classes/java/main started by junkyu in /home/junkyu/repositories/oauth-security/fisa-auth-platform)
+2026-03-13T20:19:33.905+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] c.f.auth.platform.FisaOAuthApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-03-13T20:19:33.956+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-03-13T20:19:33.957+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-03-13T20:19:34.766+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-13T20:19:34.813+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 37 ms. Found 2 JPA repository interfaces.
+2026-03-13T20:19:35.399+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 9000 (http)
+2026-03-13T20:19:35.410+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-13T20:19:35.411+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-03-13T20:19:35.441+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1482 ms
+2026-03-13T20:19:35.590+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-03-13T20:19:35.629+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.4.Final
+2026-03-13T20:19:36.071+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-13T20:19:36.094+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-13T20:19:36.229+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6d5ad5c6
+2026-03-13T20:19:36.232+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-13T20:19:36.379+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/oauth2_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 8.0.44
+	Default catalog/schema: oauth2_db/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-03-13T20:19:37.264+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-13T20:19:37.270+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-13T20:19:37.333+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-13T20:19:37.529+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.jackson.CoreJacksonModule, now registering
+2026-03-13T20:19:37.530+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.web.jackson.WebJacksonModule, now registering
+2026-03-13T20:19:37.531+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.web.server.jackson.WebServerJacksonModule, now registering
+2026-03-13T20:19:37.531+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.web.jackson.WebServletJacksonModule, now registering
+2026-03-13T20:19:37.531+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.oauth2.server.authorization.jackson.OAuth2AuthorizationServerJacksonModule, now registering
+2026-03-13T20:19:37.540+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.jackson.CoreJacksonModule, now registering
+2026-03-13T20:19:37.541+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.web.jackson.WebJacksonModule, now registering
+2026-03-13T20:19:37.541+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.web.server.jackson.WebServerJacksonModule, now registering
+2026-03-13T20:19:37.541+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.web.jackson.WebServletJacksonModule, now registering
+2026-03-13T20:19:37.541+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.jackson.SecurityJacksonModules     : Loaded module org.springframework.security.oauth2.server.authorization.jackson.OAuth2AuthorizationServerJacksonModule, now registering
+2026-03-13T20:19:37.574+09:00 TRACE 258726 --- [Fisa OAuth] [  restartedMain] eGlobalAuthenticationAutowiredConfigurer : Eagerly initializing {authorizationServerConfig=com.fisa.auth.platform.config.AuthorizationServerConfig$$SpringCGLIB$$0@24c91dbd, securityConfig=com.fisa.auth.platform.config.SecurityConfig$$SpringCGLIB$$0@18c3b578}
+2026-03-13T20:19:37.597+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-03-13T20:19:37.681+09:00  WARN 258726 --- [Fisa OAuth] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-03-13T20:19:38.149+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer$$Lambda$1668/0x0000774048a3dca8@614640a4 with filters: DisableEncodeUrlFilter, WebAsyncManagerIntegrationFilter, SecurityContextHolderFilter, AuthorizationServerContextFilter, HeaderWriterFilter, CsrfFilter, OidcLogoutEndpointFilter, LogoutFilter, OAuth2AuthorizationServerMetadataEndpointFilter, OAuth2AuthorizationCodeRequestValidatingFilter, OidcProviderConfigurationEndpointFilter, NimbusJwkSetEndpointFilter, OAuth2ProtectedResourceMetadataFilter, OAuth2ClientAuthenticationFilter, BearerTokenAuthenticationFilter, AuthenticationFilter, RequestCacheAwareFilter, SecurityContextHolderAwareRequestFilter, AnonymousAuthenticationFilter, ExceptionTranslationFilter, AuthorizationFilter, OAuth2AuthorizationEndpointFilter, OAuth2TokenEndpointFilter, OAuth2TokenIntrospectionEndpointFilter, OAuth2TokenRevocationEndpointFilter, OidcUserInfoEndpointFilter
+2026-03-13T20:19:38.197+09:00 DEBUG 258726 --- [Fisa OAuth] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with filters: DisableEncodeUrlFilter, WebAsyncManagerIntegrationFilter, SecurityContextHolderFilter, HeaderWriterFilter, CorsFilter, LogoutFilter, RequestCacheAwareFilter, SecurityContextHolderAwareRequestFilter, AnonymousAuthenticationFilter, ExceptionTranslationFilter, AuthorizationFilter
+2026-03-13T20:19:38.643+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 9000 (http) with context path '/'
+2026-03-13T20:19:38.655+09:00  INFO 258726 --- [Fisa OAuth] [  restartedMain] c.f.auth.platform.FisaOAuthApplication   : Started FisaOAuthApplication in 5.16 seconds (process running for 5.543)
+Hibernate: 
+    select
+        m1_0.id,
+        m1_0.created_at,
+        m1_0.nickname,
+        m1_0.password,
+        m1_0.role,
+        m1_0.username 
+    from
+        member m1_0 
+    where
+        m1_0.username=?
+2026-03-13T20:19:39.079+09:00  WARN 258726 --- [Fisa OAuth] [  restartedMain] o.s.core.events.SpringDocAppInitializer  : SpringDoc /v3/api-docs endpoint is enabled by default. To disable it in production, set the property 'springdoc.api-docs.enabled=false'
+2026-03-13T20:19:39.079+09:00  WARN 258726 --- [Fisa OAuth] [  restartedMain] o.s.core.events.SpringDocAppInitializer  : SpringDoc /swagger-ui.html endpoint is enabled by default. To disable it in production, set the property 'springdoc.swagger-ui.enabled=false'
+
+> Task :bootRun FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':bootRun'.
+> Process 'command '/usr/lib/jvm/java-17-openjdk-amd64/bin/java'' finished with non-zero exit value 137 (this value may indicate that the process was terminated with the SIGKILL signal, which is often caused by the system running out of memory)
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 3s
+4 actionable tasks: 1 executed, 3 up-to-date

@@ -22,22 +22,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const userData = await API.login(email, password);
-      login(userData);
-    } catch (err: any) {
-      setError(err.message || '이메일 또는 비밀번호가 올바르지 않습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const quickLogin = (e: string, p: string) => {
-    setEmail(e);
-    setPassword(p);
+    login();
   };
 
   return (
@@ -79,75 +64,21 @@ export default function LoginPage() {
           <h2 className="text-2xl font-extrabold text-[#0F172A] mb-1">로그인</h2>
           <p className="text-slate-500 text-sm mb-8 font-medium">이메일과 비밀번호를 입력하세요</p>
 
-          <div className="mb-6">
-            <p className="text-xs font-bold text-slate-400 mb-3 ml-1 flex items-center gap-1">
-               🎯 빠른 로그인 (시연용)
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { name: '계장 김철수', email: 'kim@fisa.com' },
-                { name: '대리 이영희', email: 'lee@fisa.com' },
-                { name: '과장 최민수', email: 'choi@fisa.com' },
-                { name: '차장 한지원', email: 'han@fisa.com' },
-                { name: '부장 박민준', email: 'park@fisa.com' },
-                { name: 'HR 정수진', email: 'hr@fisa.com', special: true },
-              ].map((u) => (
-                <button
-                  key={u.email}
-                  onClick={() => quickLogin(u.email, '1234')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                    u.special 
-                      ? 'border-indigo-500 text-indigo-600 bg-indigo-50 hover:bg-indigo-100' 
-                      : 'border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100 hover:border-slate-300'
-                  }`}
-                >
-                  👤 {u.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="h-px bg-slate-100 w-full mb-8" />
-
-          {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 border-l-4 border-red-500 text-red-700 text-sm font-medium">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-[#334155] ml-1" htmlFor="email">이메일</label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border-2 border-slate-100 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300 text-slate-900 font-medium"
-                placeholder="example@company.com"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-[#334155] ml-1" htmlFor="password">비밀번호</label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border-2 border-slate-100 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300 text-slate-900 font-medium"
-                placeholder="비밀번호를 입력하세요"
-              />
-            </div>
+          <div className="space-y-6">
             <button
-              type="submit"
-              disabled={isLoading || authLoading}
-              className="w-full py-3 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white font-black rounded-lg shadow-lg shadow-indigo-200 hover:translate-y-[-2px] active:translate-y-[0] transition-all disabled:opacity-70 disabled:translate-y-0"
+              onClick={() => login()}
+              disabled={authLoading}
+              className="w-full group relative flex items-center justify-center gap-3 py-4 bg-[#0F172A] text-white font-black rounded-xl shadow-xl shadow-slate-200 hover:translate-y-[-2px] active:translate-y-[0] transition-all disabled:opacity-70 disabled:translate-y-0 overflow-hidden"
             >
-              {isLoading ? '로그인 중...' : '로그인'}
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-cyan-500 opacity-0 group-hover:opacity-10 transition-opacity" />
+              <span className="text-xl">🔑</span>
+              <span>OAuth로 로그인하기</span>
             </button>
-          </form>
+            
+            <p className="text-center text-slate-400 text-xs font-medium px-4">
+              Fisa OAuth 플랫폼을 통해 안전하게 로그인합니다.
+            </p>
+          </div>
 
           <p className="mt-8 text-xs text-slate-400 text-center font-medium">
             시연용 비밀번호는 모두 <strong className="text-slate-600">1234</strong>입니다

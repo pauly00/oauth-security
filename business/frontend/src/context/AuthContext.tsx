@@ -15,7 +15,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (userData: User) => void;
+  login: () => void;
   logout: () => void;
   isLoading: boolean;
 }
@@ -29,33 +29,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const STORAGE_KEY = 'payroll_user';
 
   useEffect(() => {
-    // Load user from localStorage on mount
-    const savedUser = localStorage.getItem(STORAGE_KEY);
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        console.error('Failed to parse saved user', e);
-        localStorage.removeItem(STORAGE_KEY);
-      }
+    // Check for access_token cookie
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+    };
+
+    const token = getCookie('access_token');
+    if (token) {
+        // In a real app, we would fetch /userinfo here.
+        // For now, we'll decode the JWT or use a dummy user if token exists.
+        setUser({
+            id: 1,
+            name: 'OAuth User',
+            email: 'user@example.com',
+            role: 'ADMIN',
+            rankTitle: 'Manager',
+            companyId: 1,
+            companyName: 'Fisa Corp'
+        });
     }
     setIsLoading(false);
   }, []);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-    router.push('/dashboard');
+  const login = () => {
+    const clientId = 'test-client';
+    const redirectUri = encodeURIComponent('http://localhost:3001/api/auth/callback');
+    const authUrl = `http://localhost:9000/oauth2/authorize?response_type=code&client_id=${clientId}&scope=openid%20profile&redirect_uri=${redirectUri}`;
+    window.location.href = authUrl;
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem(STORAGE_KEY);
+    document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     router.push('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login: () => login(), logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

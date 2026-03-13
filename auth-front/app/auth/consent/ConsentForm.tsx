@@ -30,8 +30,42 @@ export default function ConsentForm({
     window.location.href = `${redirectUri}?error=access_denied&state=${state}`;
   }
 
-  // Spring Authorization Server가 기대하는 POST /oauth2/authorize 엔드포인트
-  const consentActionUrl = `${authServerUrl}/oauth2/authorize`;
+  // Spring Authorization Server가 기대하는 POST /oauth2/authorize 대신 커스텀 엔드포인트 사용
+  const consentActionUrl = `${authServerUrl}/api/auth/consent`;
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const selectedScopes = formData.getAll("scope") as string[];
+
+    try {
+      const response = await fetch(consentActionUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // JSESSIONID 쿠키 포함
+        body: JSON.stringify({
+          client_id: clientId,
+          state: state,
+          scope: selectedScopes.join(" "),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.redirectUri) {
+          window.location.href = data.redirectUri;
+        }
+      } else {
+        const errorText = await response.text();
+        alert("동의 처리 중 오류가 발생했습니다: " + errorText);
+      }
+    } catch (error) {
+      console.error("Consent submission failed:", error);
+      alert("서버 연결에 실패했습니다.");
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -61,9 +95,9 @@ export default function ConsentForm({
           - client_id, state: hidden input
           - scope: 각 항목을 checkbox (name="scope") 로 전송
         */}
-        <form action={consentActionUrl} method="POST">
-          <input type="hidden" name="client_id" value={clientId} />
-          <input type="hidden" name="state" value={state} />
+        <form onSubmit={handleSubmit}>
+          {/* <input type="hidden" name="client_id" value={clientId} /> */}
+          {/* <input type="hidden" name="state" value={state} /> */}
 
           {/* 요청 권한 목록 (checkbox) */}
           <div className="mb-6 rounded-xl border border-zinc-200 bg-zinc-50 divide-y divide-zinc-200">
