@@ -2,34 +2,44 @@ package com.fisa.auth.platform.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // API 테스트를 위한 권한 설정
     @Bean
-    @org.springframework.core.annotation.Order(1) // 우선순위를 1번으로 높임
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF 보안 해제 (API 서버로 쓸 때는 보통 끕니다)
-                .csrf(csrf -> csrf.disable())
-
-                // 경로별 권한 설정
-                .authorizeHttpRequests(auth -> auth
-                        // 클라이언트 등록 API는 누구나(또는 특정 관리자) 접근 가능하게 허용
-                        .requestMatchers("/api/clients/**").permitAll()
-                        .anyRequest().authenticated() // 나머지는 로그인 필수
-                )
-
-                // 폼 로그인 설정
-                .formLogin(Customizer.withDefaults());
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/api/clients/**",
+                                "/api/auth/**",
+                                "/login",
+                                "/error",
+                                "/.well-known/**",
+                                "/oauth2/**")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                // 인증되지 않은 사용자 -> 인증 프론트 로그인 페이지
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("http://localhost:3000")))
+                .formLogin(form -> form.disable())
+                .csrf(csrf -> csrf.disable()); // 일단 csrf disable
 
         return http.build();
     }
@@ -38,5 +48,24 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+  
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true); // 쿠키(세션) 주고받기용
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
