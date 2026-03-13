@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAYROLL — 직책 관리</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>PAYROLL</h1><p>급여 지급 관리 시스템</p></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">메뉴</div>
+      <a href="dashboard.html"        class="nav-item"><span class="icon">🏠</span>대시보드</a>
+      <a href="approval.html"         class="nav-item"><span class="icon">✅</span>승인 처리</a>
+      <a href="salary.html"           class="nav-item"><span class="icon">💰</span>급여 지급</a>
+      <a href="rank-management.html"  class="nav-item active"><span class="icon">⚙️</span>직책 관리</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div class="user-info"><p id="userName">—</p><span id="userSub">—</span></div>
+      </div>
+      <button class="btn-logout" onclick="Auth.logout()">🚪 로그아웃</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h2>⚙️ 직책 관리</h2>
+      <p>회사의 직책 레벨을 커스터마이징합니다. 레벨 숫자가 클수록 상위 직책입니다.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+      <!-- 현재 직책 목록 -->
+      <div class="card">
+        <div class="card-title"><span class="icon">🏷️</span> 현재 직책 구조</div>
+        <div id="rankList">
+          <p style="color:var(--muted);font-size:13px;">불러오는 중...</p>
+        </div>
+      </div>
+
+      <!-- 신규 추가 -->
+      <div class="card">
+        <div class="card-title"><span class="icon">➕</span> 직책 추가</div>
+        <div id="addAlert" class="alert"></div>
+        <form onsubmit="addRankLevel(event)">
+          <div class="form-group">
+            <label class="form-label">레벨 (숫자)</label>
+            <input class="form-control" id="rlLevel" type="number" min="1" max="99" placeholder="예: 6" required>
+            <p style="font-size:11px;color:var(--muted);margin-top:4px;">숫자가 클수록 상위 직책</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">직책명</label>
+            <input class="form-control" id="rlTitle" type="text" maxlength="50" placeholder="예: 이사" required>
+          </div>
+          <button type="submit" class="btn btn-primary" id="addBtn">직책 추가</button>
+        </form>
+
+        <div class="divider"></div>
+
+        <div style="background:rgba(79,70,229,.06);padding:14px;border-radius:8px;font-size:13px;">
+          <strong>💡 시연 시나리오 직책 구성</strong>
+          <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+            <div>🔵 Lv.5 <strong>부장</strong> — 최종 승인자</div>
+            <div>🟢 Lv.4 <strong>차장</strong></div>
+            <div>🟡 Lv.3 <strong>과장</strong></div>
+            <div>🟠 Lv.2 <strong>대리</strong> — 1차 승인자</div>
+            <div>🔴 Lv.1 <strong>계장</strong> — 야근 신청자</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  const user = Auth.requireHR();
+
+  if (user) {
+    renderUserChip(user);
+    loadRankLevels();
+  }
+
+  async function loadRankLevels() {
+    const container = document.getElementById('rankList');
+    try {
+      const list = await API.getRankLevels(user.companyId);
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:13px;">등록된 직책이 없습니다.</p>';
+        return;
+      }
+      container.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${list.slice().reverse().map(rl => `
+            <div style="display:flex;align-items:center;justify-content:space-between;
+                        padding:10px 14px;border-radius:8px;background:var(--light);">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;border-radius:8px;
+                            background:linear-gradient(135deg,var(--primary),var(--secondary));
+                            display:flex;align-items:center;justify-content:center;
+                            color:white;font-weight:700;font-size:12px;">
+                  ${rl.level}
+                </div>
+                <div>
+                  <div style="font-weight:600;font-size:14px;">${rl.title}</div>
+                  <div style="font-size:11px;color:var(--muted);">레벨 ${rl.level}</div>
+                </div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="deleteRank(${rl.id}, '${rl.title}')"
+                      style="color:var(--danger);border-color:var(--danger);">삭제</button>
+            </div>`).join('')}
+        </div>`;
+    } catch (e) {
+      container.innerHTML = `<p style="color:var(--danger);">${e.message}</p>`;
+    }
+  }
+
+  async function addRankLevel(e) {
+    e.preventDefault();
+    const alertEl = document.getElementById('addAlert');
+    alertEl.classList.remove('show');
+    const btn = document.getElementById('addBtn');
+    btn.disabled = true;
+
+    try {
+      await API.createRankLevel({
+        companyId: user.companyId,
+        level: parseInt(document.getElementById('rlLevel').value),
+        title: document.getElementById('rlTitle').value.trim(),
+      });
+      alertEl.className = 'alert alert-success show';
+      alertEl.textContent = '✅ 직책이 추가되었습니다.';
+      document.getElementById('rlLevel').value = '';
+      document.getElementById('rlTitle').value = '';
+      await loadRankLevels();
+    } catch (err) {
+      alertEl.className = 'alert alert-error show';
+      alertEl.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function deleteRank(id, title) {
+    if (!confirm(`"${title}" 직책을 삭제하시겠습니까?\n해당 직책에 사원이 배정되어 있으면 삭제되지 않습니다.`)) return;
+    try {
+      await API.deleteRankLevel(id);
+      showToast(`"${title}" 삭제 완료`, 'success');
+      await loadRankLevels();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  }
+</script>
+</body>
+</html>

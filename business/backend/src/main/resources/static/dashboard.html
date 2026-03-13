@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAYROLL — 대시보드</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page-wrapper">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>PAYROLL</h1>
+      <p>급여 지급 관리 시스템</p>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div class="user-info">
+          <p id="userName">로딩중</p>
+          <span id="userSub">—</span>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="Auth.logout()">🚪 로그아웃</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="page-header">
+      <h2>대시보드</h2>
+      <p id="welcomeMsg">안녕하세요!</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <!-- Recent Overtime -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📋</span> 최근 야근 신청 현황</div>
+      <div class="table-wrapper">
+        <table id="recentTable">
+          <thead>
+            <tr><th>신청자</th><th>직책</th><th>날짜</th><th>시간</th><th>사유</th><th>상태</th><th>승인 체인</th></tr>
+          </thead>
+          <tbody id="recentBody">
+            <tr class="empty-row"><td colspan="7">데이터를 불러오는 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  const user = Auth.require();
+  if (user) init();
+
+  function buildNav(u) {
+    const isHR = u.role === 'HR' || u.role === 'ADMIN';
+    const items = [
+      { href: 'dashboard.html',       icon: '🏠', label: '대시보드', active: true },
+      ...(u.role === 'EMPLOYEE' && u.rankLevel === 1 
+        ? [{ href: 'overtime.html', icon: '🌙', label: '야근 신청' }]
+        : []),
+      { href: 'approval.html',        icon: '✅', label: '승인 처리' },
+      ...(isHR ? [
+        { href: 'salary.html',        icon: '💰', label: '급여 지급' },
+        { href: 'rank-management.html', icon: '⚙️', label: '직책 관리' },
+      ] : []),
+    ];
+    const nav = document.getElementById('sidebarNav');
+    nav.innerHTML = `<div class="nav-section">메뉴</div>` +
+      items.map(i => `<a href="${i.href}" class="nav-item ${i.active?'active':''}">
+        <span class="icon">${i.icon}</span>${i.label}</a>`).join('');
+  }
+
+  async function init() {
+    renderUserChip(user);
+    buildNav(user);
+    document.getElementById('welcomeMsg').textContent = `${user.name} ${user.rankTitle}님, 안녕하세요 👋`;
+
+    try {
+      const overtimes = await API.getCompanyOvertimes(user.companyId);
+      const pending = overtimes.filter(o => o.status === 'PENDING' || o.status === 'IN_PROGRESS');
+      const approved = overtimes.filter(o => o.status === 'APPROVED');
+
+      const isHR = user.role === 'HR' || user.role === 'ADMIN';
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon">📄</div>
+          <div class="stat-value">${overtimes.length}</div>
+          <div class="stat-label">전체 야근 신청</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-value">${pending.length}</div>
+          <div class="stat-label">처리 중</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value">${approved.length}</div>
+          <div class="stat-label">승인 완료</div>
+        </div>
+        ${isHR ? `<div class="stat-card">
+          <div class="stat-icon">💼</div>
+          <div class="stat-value">${user.companyName}</div>
+          <div class="stat-label">소속 회사</div>
+        </div>` : ''}
+      `;
+
+      const tbody = document.getElementById('recentBody');
+      if (overtimes.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">야근 신청 내역이 없습니다.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = overtimes.slice(0, 10).map(o => `
+        <tr>
+          <td><strong>${o.requesterName}</strong></td>
+          <td>${o.requesterRankTitle}</td>
+          <td>${o.overtimeDate}</td>
+          <td>${o.hours}시간</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.reason || '—'}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td>${renderStepChain(o.approvalSteps)}</td>
+        </tr>`).join('');
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  }
+</script>
+</body>
+</html>

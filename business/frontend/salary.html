@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAYROLL — 급여 지급</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>PAYROLL</h1><p>급여 지급 관리 시스템</p></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">메뉴</div>
+      <a href="dashboard.html"        class="nav-item"><span class="icon">🏠</span>대시보드</a>
+      <a href="approval.html"         class="nav-item"><span class="icon">✅</span>승인 처리</a>
+      <a href="salary.html"           class="nav-item active"><span class="icon">💰</span>급여 지급</a>
+      <a href="rank-management.html"  class="nav-item"><span class="icon">⚙️</span>직책 관리</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div class="user-info"><p id="userName">—</p><span id="userSub">—</span></div>
+      </div>
+      <button class="btn-logout" onclick="Auth.logout()">🚪 로그아웃</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h2>💰 급여 지급 관리</h2>
+      <p>야근 수당이 반영된 급여를 확인하고 지급 처리합니다.</p>
+    </div>
+
+    <!-- 월 선택 -->
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="form-group" style="margin:0;flex:1;min-width:200px;">
+          <label class="form-label">조회 년월</label>
+          <input class="form-control" id="yearMonth" type="month" style="max-width:200px;">
+        </div>
+        <button class="btn btn-primary" onclick="loadSalaries()" style="margin-top:20px;">조회</button>
+        <button class="btn btn-success" id="payAllBtn" onclick="payAll()" style="margin-top:20px;display:none;">💰 전체 지급</button>
+      </div>
+    </div>
+
+    <!-- 합계 카드 -->
+    <div id="summarySection" style="display:none;" class="stats-grid" style="margin-bottom:20px;"></div>
+
+    <!-- 급여 테이블 -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📊</span> 급여 내역</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>사원명</th>
+              <th>직책</th>
+              <th>기본급</th>
+              <th>야근수당</th>
+              <th>합계</th>
+              <th>상태</th>
+              <th>지급일</th>
+              <th>처리</th>
+            </tr>
+          </thead>
+          <tbody id="salaryBody">
+            <tr class="empty-row"><td colspan="8">연월을 선택하고 조회하세요.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  const user = Auth.requireHR();
+  let salaryList = [];
+
+  if (user) {
+    renderUserChip(user);
+    // 이번 달 기본값
+    const now = new Date();
+    document.getElementById('yearMonth').value =
+      `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    loadSalaries();
+  }
+
+  async function loadSalaries() {
+    const ym = document.getElementById('yearMonth').value;
+    if (!ym) return;
+    const tbody = document.getElementById('salaryBody');
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">불러오는 중...</td></tr>';
+
+    try {
+      salaryList = await API.getSalaries(user.companyId, ym);
+      if (salaryList.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="8">해당 월 급여 데이터가 없습니다.</td></tr>';
+        document.getElementById('payAllBtn').style.display = 'none';
+        return;
+      }
+
+      const hasPending = salaryList.some(s => s.status === 'PENDING');
+      document.getElementById('payAllBtn').style.display = hasPending ? 'inline-flex' : 'none';
+
+      // Summary
+      const total = salaryList.reduce((a,s)=>a+s.totalSalary,0);
+      const otPay = salaryList.reduce((a,s)=>a+s.overtimePay,0);
+      const paidCount = salaryList.filter(s=>s.status==='PAID').length;
+      const section = document.getElementById('summarySection');
+      section.style.display = 'grid';
+      section.innerHTML = `
+        <div class="stat-card"><div class="stat-icon">👥</div>
+          <div class="stat-value">${salaryList.length}명</div><div class="stat-label">대상 사원</div></div>
+        <div class="stat-card"><div class="stat-icon">💵</div>
+          <div class="stat-value">${(total/10000).toLocaleString()}만원</div><div class="stat-label">총 지급액</div></div>
+        <div class="stat-card"><div class="stat-icon">🌙</div>
+          <div class="stat-value">${(otPay/10000).toLocaleString()}만원</div><div class="stat-label">야근수당 합계</div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div>
+          <div class="stat-value">${paidCount}/${salaryList.length}</div><div class="stat-label">지급 완료</div></div>
+      `;
+
+      tbody.innerHTML = salaryList.map(s => `
+        <tr>
+          <td><strong>${s.employeeName}</strong></td>
+          <td>${s.rankTitle}</td>
+          <td>${fmtWon(s.baseSalary)}</td>
+          <td style="color:${s.overtimePay>0?'#059669':'var(--muted)'}">
+            ${s.overtimePay > 0 ? '<strong>+</strong>' : ''}${fmtWon(s.overtimePay)}
+          </td>
+          <td><strong>${fmtWon(s.totalSalary)}</strong></td>
+          <td>${statusBadge(s.status)}</td>
+          <td>${s.paidAt ? fmtDate(s.paidAt) : '—'}</td>
+          <td>
+            ${s.status === 'PENDING'
+              ? `<button class="btn btn-success btn-sm" onclick="paySingle(${s.id})">지급</button>`
+              : `<span style="font-size:12px;color:var(--muted)">처리완료</span>`}
+          </td>
+        </tr>`).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="8">오류: ${e.message}</td></tr>`;
+    }
+  }
+
+  async function paySingle(id) {
+    try {
+      await API.paySalary(id, user.id);
+      showToast('급여 지급 완료 ✅', 'success');
+      await loadSalaries();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  }
+
+  async function payAll() {
+    if (!confirm('미지급 급여를 전체 지급 처리합니다. 계속하시겠습니까?')) return;
+    const pending = salaryList.filter(s => s.status === 'PENDING');
+    try {
+      for (const s of pending) {
+        await API.paySalary(s.id, user.id);
+      }
+      showToast(`${pending.length}건 일괄 지급 완료 ✅`, 'success');
+      await loadSalaries();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  }
+</script>
+</body>
+</html>
