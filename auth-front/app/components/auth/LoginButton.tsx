@@ -18,6 +18,8 @@ export default function LoginButton({
 }: LoginButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // page.tsx에서 이미 로그인 여부를 확인하고 redirect 처리
+  // → 여기까지 왔으면 반드시 미로그인 상태
   return (
     <>
       <button
