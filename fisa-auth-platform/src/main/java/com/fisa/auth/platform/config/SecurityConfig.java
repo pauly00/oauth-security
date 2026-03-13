@@ -38,7 +38,7 @@ public class SecurityConfig {
                 )
                 // 인증되지 않은 사용자 -> 인증 프론트 로그인 페이지
                 .exceptionHandling(e -> e
-                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("http://localhost:3000/login"))
+                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("http://localhost:3000"))
                 )
                 .formLogin(form -> form.disable())
                 .csrf(csrf -> csrf.disable()); // 일단 csrf disable
