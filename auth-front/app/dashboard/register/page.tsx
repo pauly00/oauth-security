@@ -16,6 +16,7 @@ export default function RegisterPage() {
     })
     const [result, setResult] = useState<any>(null)
     const [loading, setLoading] = useState(false)
+    const [secretVisible, setSecretVisible] = useState(false)
 
     const handleScopeChange = (scope: string) => {
         setForm(prev => ({
@@ -27,15 +28,30 @@ export default function RegisterPage() {
     }
 
     const handleSubmit = async () => {
+        if (!form.clientName || !form.redirectUris[0]) {
+            alert('앱 이름과 리디렉션 URI를 입력해주세요.')
+            return
+        }
         setLoading(true)
         try {
-            const data = await registerClient(form)
-            setResult(data)
+            const response = await registerClient({
+                clientName: form.clientName,
+                redirectUris: form.redirectUris,
+                scopes: form.scopes,
+                authorizationGrantTypes: form.authorizationGrantTypes,
+            })
+            setResult(response)
+            setSecretVisible(false)
         } catch (e) {
             alert('등록 실패')
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleModalClose = () => {
+        setResult(null)
+        router.push('/dashboard')
     }
 
     return (
@@ -125,32 +141,58 @@ export default function RegisterPage() {
                             취소
                         </button>
                     </div>
-
-                    {result && (
-                        <div className="mt-8 border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                                    <span className="text-white text-xs">✓</span>
-                                </div>
-                                <p className="text-gray-800 font-medium">OAuth 클라이언트가 생성되었습니다</p>
-                            </div>
-                            <div className="bg-gray-50 rounded p-4 space-y-3 text-sm">
-                                <div>
-                                    <p className="text-gray-500 text-xs mb-1">클라이언트 ID</p>
-                                    <p className="font-mono text-gray-800">{result.clientId}</p>
-                                </div>
-                                <div>
-                                    <p className="text-gray-500 text-xs mb-1">클라이언트 보안 비밀번호</p>
-                                    <p className="font-mono text-gray-800">{result.clientSecret}</p>
-                                </div>
-                            </div>
-                            <p className="text-xs text-red-500 mt-3">
-                                보안 비밀번호는 지금만 표시됩니다. 반드시 저장해 두세요.
-                            </p>
-                        </div>
-                    )}
                 </main>
             </div>
+
+            {/* 모달 */}
+            {result && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                <span className="text-white text-xs">✓</span>
+                            </div>
+                            <p className="text-gray-800 font-medium text-lg">OAuth 클라이언트가 생성되었습니다</p>
+                        </div>
+
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-4 text-sm mb-4">
+                            <div>
+                                <p className="text-gray-500 text-xs mb-1">앱 이름</p>
+                                <p className="text-gray-800 font-medium">{result.clientName}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500 text-xs mb-1">클라이언트 ID</p>
+                                <p className="font-mono text-gray-800 text-xs break-all">{result.clientId}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500 text-xs mb-1">클라이언트 보안 비밀</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-mono text-gray-800 text-xs break-all flex-1">
+                                        {secretVisible ? result.clientSecret : '••••••••••••••••••••••••'}
+                                    </p>
+                                    <button
+                                        onClick={() => setSecretVisible(prev => !prev)}
+                                        className="text-xs text-blue-600 hover:underline shrink-0"
+                                    >
+                                        {secretVisible ? '숨기기' : '표시'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p className="text-xs text-red-500 mb-4">
+                            ⚠️ 보안 비밀은 지금만 표시됩니다. 반드시 저장해 두세요.
+                        </p>
+
+                        <button
+                            onClick={handleModalClose}
+                            className="w-full bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700"
+                        >
+                            확인
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
