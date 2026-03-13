@@ -32,7 +32,7 @@ export default function DashboardPage() {
         if (!confirm('정말 삭제하시겠습니까?')) return
         try {
             await deleteClient(clientId)
-            setClients(prev => prev.filter(c => c.client_id !== clientId))
+            setClients(prev => prev.filter(c => c.clientId !== clientId))
         } catch (e) {
             alert('삭제 실패')
         }
@@ -79,21 +79,21 @@ export default function DashboardPage() {
                             </div>
                             {clients.map((client, index) => (
                                 <div
-                                    key={client.client_id}
+                                    key={client.clientId}
                                     className={`grid grid-cols-4 px-4 py-4 text-sm items-center ${index !== clients.length - 1 ? 'border-b' : ''} hover:bg-gray-50`}
                                 >
                                     <span className="text-gray-800 font-medium">{client.clientName}</span>
-                                    <span className="font-mono text-gray-500 text-xs">{client.client_id}</span>
+                                    <span className="font-mono text-gray-500 text-xs">{client.clientId}</span>
                                     <span className="text-gray-500 text-xs truncate">{client.redirectUri}</span>
                                     <div className="flex gap-3">
                                         <button
-                                            onClick={() => router.push(`/dashboard/${client.client_id}`)}
+                                            onClick={() => router.push(`/dashboard/${client.clientId}`)}
                                             className="text-blue-600 text-xs hover:underline"
                                         >
                                             상세보기
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(client.client_id)}
+                                            onClick={() => handleDelete(client.clientId)}
                                             className="text-red-500 text-xs hover:underline"
                                         >
                                             삭제
