@@ -2,6 +2,7 @@ package com.payroll.backend.repository;
 
 import com.payroll.backend.entity.ApprovalStep;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +17,8 @@ public interface ApprovalStepRepository extends JpaRepository<ApprovalStep, Long
     /** 특정 승인자에게 할당된 WAITING 단계 전체 */
     List<ApprovalStep> findByApproverIdAndStatusOrderByOvertimeRequestCreatedAtDesc(
             Long approverId, ApprovalStep.Status status);
+
+    /** 철회/삭제 시 FK 제약 해제용: overtime 삭제 전 먼저 호출 */
+    @Transactional
+    void deleteByOvertimeRequestId(Long overtimeRequestId);
 }

@@ -19,7 +19,7 @@ public class SalaryPayment {
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
-    @Column(name = "year_month", nullable = false, length = 7)
+    @Column(name = "`year_month`", nullable = false, length = 7)
     private String yearMonth;  // YYYY-MM
 
     @Column(name = "base_salary", nullable = false, precision = 12, scale = 2)

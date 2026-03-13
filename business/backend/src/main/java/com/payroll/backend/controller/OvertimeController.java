@@ -66,6 +66,20 @@ public class OvertimeController {
         return ResponseEntity.ok(overtimeService.reject(id, req.getApproverId(), req.getComment()));
     }
 
+    /** 철회 (PENDING/IN_PROGRESS 상태인 본인 신청) */
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancel(@PathVariable Long id, @RequestBody CancelRequest req) {
+        overtimeService.cancelRequest(id, req.getRequesterId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /** 삭제 (APPROVED/REJECTED 상태인 본인 신청) */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id, @RequestParam Long requesterId) {
+        overtimeService.deleteRequest(id, requesterId);
+        return ResponseEntity.noContent().build();
+    }
+
     @Data
     static class OvertimeCreateRequest {
         private Long requesterId;
@@ -78,5 +92,10 @@ public class OvertimeController {
     static class ApproveRequest {
         private Long approverId;
         private String comment;
+    }
+
+    @Data
+    static class CancelRequest {
+        private Long requesterId;
     }
 }

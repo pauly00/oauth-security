@@ -41,6 +41,10 @@ const API = {
     apiFetch(`/overtime/${id}/approve`, { method: 'POST', body: { approverId, comment } }),
   rejectOvertime: (id, approverId, comment) =>
     apiFetch(`/overtime/${id}/reject`, { method: 'POST', body: { approverId, comment } }),
+  cancelOvertime: (id, requesterId) =>
+    apiFetch(`/overtime/${id}/cancel`, { method: 'POST', body: { requesterId } }),
+  deleteOvertime: (id, requesterId) =>
+    apiFetch(`/overtime/${id}?requesterId=${requesterId}`, { method: 'DELETE' }),
 
   // Salary
   getSalaries: (companyId, yearMonth) =>

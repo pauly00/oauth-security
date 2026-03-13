@@ -64,7 +64,7 @@
     const isHR = u.role === 'HR' || u.role === 'ADMIN';
     const items = [
       { href: 'dashboard.html',       icon: '🏠', label: '대시보드', active: true },
-      ...(u.role === 'EMPLOYEE' && u.rankLevel === 1 
+      ...(u.role === 'EMPLOYEE'
         ? [{ href: 'overtime.html', icon: '🌙', label: '야근 신청' }]
         : []),
       { href: 'approval.html',        icon: '✅', label: '승인 처리' },
@@ -114,11 +114,13 @@
       `;
 
       const tbody = document.getElementById('recentBody');
-      if (overtimes.length === 0) {
+      // HR이 아닌 직원은 최종 승인(APPROVED)된 내역 숨김
+      const displayList = isHR ? overtimes : overtimes.filter(o => o.status !== 'APPROVED');
+      if (displayList.length === 0) {
         tbody.innerHTML = '<tr class="empty-row"><td colspan="7">야근 신청 내역이 없습니다.</td></tr>';
         return;
       }
-      tbody.innerHTML = overtimes.slice(0, 10).map(o => `
+      tbody.innerHTML = displayList.slice(0, 10).map(o => `
         <tr>
           <td><strong>${o.requesterName}</strong></td>
           <td>${o.requesterRankTitle}</td>
