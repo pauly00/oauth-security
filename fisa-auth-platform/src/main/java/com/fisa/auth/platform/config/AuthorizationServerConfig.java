@@ -81,7 +81,7 @@ public class AuthorizationServerConfig {
         return keyPair;
     }
 
-    //나중에 B로 바꿔야함
+    // 나중에 B로 바꿔야함
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
         // 테스트용 클라이언트를 메모리에 등록
@@ -94,7 +94,10 @@ public class AuthorizationServerConfig {
                 .redirectUri("http://localhost:3000/api/auth/callback/fisa") // Next.js 콜백 주소 예시
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+                .clientSettings(ClientSettings.builder()
+                        .requireAuthorizationConsent(true)
+                        .requireProofKey(false) // PKCE 비활성화
+                        .build())
                 .build();
 
         return new InMemoryRegisteredClientRepository(registeredClient);
