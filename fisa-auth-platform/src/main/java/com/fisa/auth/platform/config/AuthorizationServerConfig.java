@@ -12,6 +12,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -39,19 +40,30 @@ public class AuthorizationServerConfig {
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
+                new OAuth2AuthorizationServerConfigurer();
+
+        RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
+
         http
-                .oauth2AuthorizationServer(authorizationServer -> {
-                    http.securityMatcher(authorizationServer.getEndpointsMatcher());
-                    authorizationServer
-                            .authorizationEndpoint(endpoint -> endpoint
-                                    .consentPage("http://localhost:3000/auth/consent"))
-                            .oidc(Customizer.withDefaults());
-                })
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+                .securityMatcher(endpointsMatcher)
+                .authorizeHttpRequests(authorize ->
+                        authorize.anyRequest().authenticated()
+                )
+
+                .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
+                .with(authorizationServerConfigurer, (authorizationServer) ->
+                        authorizationServer
+                                .authorizationEndpoint(endpoint -> endpoint
+                                        .consentPage("http://localhost:3000/auth/consent")) //임시
+                                .oidc(Customizer.withDefaults())
+                )
                 .exceptionHandling(exceptions -> exceptions
                         .defaultAuthenticationEntryPointFor(
                                 new LoginUrlAuthenticationEntryPoint("http://localhost:3000"),
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
+                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                        )
+                );
 
         return http.build();
     }
