@@ -49,7 +49,13 @@ public class ClientService {
                 // 서버 설정
                 .clientAuthenticationMethods("client_secret_basic")
                 .clientSettings("{\"@class\":\"java.util.Collections$UnmodifiableMap\",\"settings.client.require-proof-key\":false,\"settings.client.require-authorization-consent\":true}")
-                .tokenSettings("{\"@class\":\"java.util.Collections$UnmodifiableMap\",\"settings.token.access-token-time-to-live\":[\"java.time.Duration\",3600.000000000]}") // 토큰유효기간: 1시간
+                .tokenSettings("{\"@class\":\"java.util.Collections$UnmodifiableMap\"," +
+                        "\"settings.token.authorization-code-time-to-live\":[\"java.time.Duration\",300.000000000]," +
+                        "\"settings.token.access-token-time-to-live\":[\"java.time.Duration\",3600.000000000]," +
+                        "\"settings.token.refresh-token-time-to-live\":[\"java.time.Duration\",3600.000000000]," +
+                        "\"settings.token.reuse-refresh-tokens\":true," +
+                        "\"settings.token.access-token-format\":{\"@class\":\"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat\",\"value\":\"self-contained\"}," +
+                        "\"settings.token.id-token-signature-algorithm\":[\"org.springframework.security.oauth2.jose.jws.SignatureAlgorithm\",\"RS256\"]}")
                 .build();
 
         // 저장
