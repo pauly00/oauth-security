@@ -48,7 +48,7 @@ public class AuthorizationServerConfig {
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
                         .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("http://localhost:3000/login"),
+                                new LoginUrlAuthenticationEntryPoint("http://localhost:3000"),
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
 
         return http.build();
