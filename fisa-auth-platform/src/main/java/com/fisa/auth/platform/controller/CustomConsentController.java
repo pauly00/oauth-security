@@ -1,9 +1,11 @@
 package com.fisa.auth.platform.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationCode;
@@ -13,12 +15,15 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.security.Principal;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class CustomConsentController {
 
     private final OAuth2AuthorizationService authorizationService;
@@ -58,16 +63,21 @@ public class CustomConsentController {
             scopeStr = String.join(" ", (List<String>) scopeObj);
         }
 
+        log.info("Handling consent for clientId: {}, redirectUriParam: {}", clientId, redirectUriParam);
+
         RegisteredClient registeredClient = registeredClientRepository.findByClientId(clientId);
         if (registeredClient == null) {
+            log.warn("Client not found in DB: {}", clientId);
             return ResponseEntity.status(400).body("클라이언트를 찾을 수 없습니다.");
         }
 
         // 인가 코드에서 보냈던 redirect_uri가 나중에 토큰 교환 시에도 일치해야 함
         // 파라미터로 안 왔다면 클라이언트 등록 정보의 첫 번째를 사용
-        String actualRedirectUri = (redirectUriParam != null && !redirectUriParam.isEmpty()) 
+        String actualRedirectUri = (redirectUriParam != null && !redirectUriParam.isEmpty() && !"undefined".equals(redirectUriParam)) 
                 ? redirectUriParam 
                 : registeredClient.getRedirectUris().iterator().next();
+        
+        log.info("Actual redirect URI to use: {}", actualRedirectUri);
 
         String codeValue = UUID.randomUUID().toString();
 
@@ -80,7 +90,16 @@ public class CustomConsentController {
                         Instant.now(),
                         Instant.now().plus(Duration.ofMinutes(5))))
                 .attribute(OAuth2ParameterNames.STATE, state)
-                .attribute(OAuth2ParameterNames.REDIRECT_URI, actualRedirectUri) // 중요: REDIRECT_URI 추가
+                .attribute(OAuth2ParameterNames.REDIRECT_URI, actualRedirectUri)
+                .attribute(Principal.class.getName(), authentication)
+                .attribute(OAuth2AuthorizationRequest.class.getName(), 
+                        OAuth2AuthorizationRequest.authorizationCode()
+                                .clientId(clientId)
+                                .authorizationUri("http://localhost:9000/oauth2/authorize")
+                                .redirectUri(actualRedirectUri)
+                                .scopes(Set.of(scopeStr.split(" ")))
+                                .state(state)
+                                .build())
                 .build();
 
         authorizationService.save(authorization);

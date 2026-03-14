@@ -14,8 +14,15 @@ interface ConsentPageProps {
 const BACKEND_URL = process.env.BACKEND_URL ?? "";
 
 export default async function ConsentPage({ searchParams }: ConsentPageProps) {
-  const { client_id, redirect_uri, scope, state } = await searchParams;
+  let { client_id, redirect_uri, scope, state } = await searchParams;
   const cookieStore = await cookies();
+
+  // URL 파라미터 없으면 쿠키에서 복원
+  if (!client_id) client_id = cookieStore.get("oauth_clientId")?.value;
+  if (!redirect_uri) redirect_uri = cookieStore.get("oauth_redirectUri")?.value;
+  if (!scope) scope = cookieStore.get("oauth_scope")?.value;
+  if (!state) state = cookieStore.get("oauth_state")?.value;
+
   const sessionId = cookieStore.get("JSESSIONID")?.value;
 
   const loginUrl = `/?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}&state=${state}`;

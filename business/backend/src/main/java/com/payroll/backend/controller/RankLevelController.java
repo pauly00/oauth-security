@@ -1,5 +1,6 @@
 package com.payroll.backend.controller;
 
+import com.payroll.backend.dto.RankLevelDto;
 import com.payroll.backend.entity.RankLevel;
 import com.payroll.backend.service.RankLevelService;
 import lombok.Data;
@@ -17,12 +18,12 @@ public class RankLevelController {
     private final RankLevelService rankLevelService;
 
     @GetMapping("/company/{companyId}")
-    public ResponseEntity<List<RankLevel>> getByCompany(@PathVariable Long companyId) {
+    public ResponseEntity<List<RankLevelDto>> getByCompany(@PathVariable Long companyId) {
         return ResponseEntity.ok(rankLevelService.getByCompany(companyId));
     }
 
     @PostMapping
-    public ResponseEntity<RankLevel> create(@RequestBody CreateRequest req) {
+    public ResponseEntity<RankLevelDto> create(@RequestBody CreateRequest req) {
         return ResponseEntity.ok(rankLevelService.create(req.getCompanyId(), req.getLevel(), req.getTitle()));
     }
 

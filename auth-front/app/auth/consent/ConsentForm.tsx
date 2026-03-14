@@ -48,6 +48,7 @@ export default function ConsentForm({
         body: JSON.stringify({
           client_id: clientId,
           state: state,
+          redirect_uri: redirectUri,
           scope: selectedScopes.join(" "),
         }),
       });

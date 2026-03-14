@@ -1,5 +1,6 @@
 package com.payroll.backend.service;
 
+import com.payroll.backend.dto.RankLevelDto;
 import com.payroll.backend.entity.Company;
 import com.payroll.backend.entity.RankLevel;
 import com.payroll.backend.repository.CompanyRepository;
@@ -22,12 +23,14 @@ public class RankLevelService {
     private final EmployeeRepository employeeRepo;
 
     @Transactional(readOnly = true)
-    public List<RankLevel> getByCompany(Long companyId) {
-        return rankLevelRepo.findByCompanyIdOrderByLevelAsc(companyId);
+    public List<RankLevelDto> getByCompany(Long companyId) {
+        return rankLevelRepo.findByCompanyIdOrderByLevelAsc(companyId).stream()
+                .map(RankLevelDto::from)
+                .toList();
     }
 
     @Transactional
-    public RankLevel create(Long companyId, Integer level, String title) {
+    public RankLevelDto create(Long companyId, Integer level, String title) {
         Company company = companyRepo.findById(companyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "회사를 찾을 수 없습니다."));
 
@@ -36,7 +39,8 @@ public class RankLevelService {
                 .level(level)
                 .title(title)
                 .build();
-        return rankLevelRepo.save(rl);
+        RankLevel saved = rankLevelRepo.save(rl);
+        return RankLevelDto.from(saved);
     }
 
     @Transactional

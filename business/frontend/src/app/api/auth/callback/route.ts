@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: 'http://localhost:3001/api/auth/callback',
+        redirect_uri: 'http://localhost:4000/api/auth/callback',
       }),
     });
 

@@ -60,7 +60,7 @@ export default function LoginModal({
   function handleLoginSuccess() {
     onClose();
     // 빽단에서 온 redirectUri가 있다면 그걸 사용, 없으면 test-client 기본값 시뮬레이션
-    const targetRedirectUri = redirectUri || "http://localhost:3001/api/auth/callback";
+    const targetRedirectUri = redirectUri || "http://localhost:4000/api/auth/callback";
     const targetClientId = clientId || "test-client";
     const targetScope = scope || "openid profile";
     
@@ -117,6 +117,7 @@ export default function LoginModal({
                   body: JSON.stringify({
                     client_id: clientId,
                     state: state,
+                    redirect_uri: redirectUri || "http://localhost:4000/api/auth/callback",
                     scope: selectedScopes.join(" "),
                   }),
                 });

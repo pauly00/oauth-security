@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 const BACKEND_URL = process.env.BACKEND_URL;
 
 export async function POST(req: NextRequest) {
-  const { username, password } = await req.json();
+  const { username, password, clientId, redirectUri, scope, state } = await req.json();
 
   let backendRes: Response;
   try {
@@ -49,5 +49,12 @@ export async function POST(req: NextRequest) {
     path: "/",
     maxAge: 60 * 60,
   });
+
+  // OAuth 파라미터 보존 (Consent 페이지용)
+  if (clientId) res.cookies.set("oauth_clientId", clientId, { path: "/", maxAge: 60 * 5 });
+  if (redirectUri) res.cookies.set("oauth_redirectUri", redirectUri, { path: "/", maxAge: 60 * 5 });
+  if (scope) res.cookies.set("oauth_scope", scope, { path: "/", maxAge: 60 * 5 });
+  if (state) res.cookies.set("oauth_state", state, { path: "/", maxAge: 60 * 5 });
+
   return res;
 }

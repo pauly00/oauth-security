@@ -37,25 +37,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const token = getCookie('access_token');
-    if (token) {
-        // In a real app, we would fetch /userinfo here.
-        // For now, we'll decode the JWT or use a dummy user if token exists.
-        setUser({
-            id: 1,
-            name: 'OAuth User',
-            email: 'user@example.com',
-            role: 'ADMIN',
-            rankTitle: 'Manager',
-            companyId: 1,
-            companyName: 'Fisa Corp'
+    
+    const checkSession = async (authToken: string) => {
+      try {
+        const res = await fetch('http://localhost:8080/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
         });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user profile', err);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (token) {
+      checkSession(token);
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = () => {
-    const clientId = 'test-client';
-    const redirectUri = encodeURIComponent('http://localhost:3001/api/auth/callback');
+    const clientId = process.env.NEXT_PUBLIC_OAUTH_CLIENT_ID || 'test-client';
+    const redirectUri = encodeURIComponent(process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 'http://localhost:4000/api/auth/callback');
     const authUrl = `http://localhost:9000/oauth2/authorize?response_type=code&client_id=${clientId}&scope=openid%20profile&redirect_uri=${redirectUri}`;
     window.location.href = authUrl;
   };
